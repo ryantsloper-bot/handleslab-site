@@ -15,7 +15,8 @@
   var label = function (t) { return "Level " + (HL.order.indexOf(t) + 1) + " of 4 · " + t; };
   function missingFor(d) { var m = []; for (var x = 1; x < d; x++) if (tierIdx(x) < tierIdx(d) && !done[x]) m.push(x); return m; }
   function locked(d) { return tierIdx(d) > 0 && missingFor(d).length > 0; }
-  function today() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d)) return d; for (d = 1; d <= 30; d++) if (!done[d]) return d; return 30; }
+  var held = function (d) { return (HL.held || []).indexOf(d) >= 0; };   // days behind an "Unlocks" card (tools/day_lock.txt)
+  function today() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d) && !held(d)) return d; for (d = 1; d <= 30; d++) if (!done[d] && !locked(d)) return d; for (d = 1; d <= 30; d++) if (!done[d]) return d; return 30; }
   function streak() {
     var dates = {}; for (var k in done) if (done[k]) dates[done[k]] = 1;
     var t = new Date(), n = 0;

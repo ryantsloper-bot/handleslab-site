@@ -62,9 +62,30 @@ assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
 CLIPMAN = json.load(open(os.path.join(ROOT, "assets/clips/manifest.json"))) if os.path.exists(os.path.join(ROOT, "assets/clips/manifest.json")) else {}
 _hp = os.path.join(ROOT, "tools/clip_hold.txt")
 CLIPHOLD = {l.split("#")[0].strip() for l in open(_hp)} - {""} if os.path.exists(_hp) else set()
+# Locked days: tools/day_lock.txt, one "N [card text]" per line. A locked day's page and app entry show an
+# "Unlocks" card and carry NO clips, posters, stills or step images. Card text defaults to "Unlocks tomorrow" for the
+# lowest locked day and "Unlocks soon" for the rest. Unlock = delete the line, then run build.py.
+_lp = os.path.join(ROOT, "tools/day_lock.txt")
+LOCK = {}
+if os.path.exists(_lp):
+    for _l in open(_lp, encoding="utf-8"):
+        _l = _l.split("#")[0].strip()
+        if not _l: continue
+        _m = re.fullmatch(r"(\d{1,2})(?:\s+(.+))?", _l)
+        if not _m or not 1 <= int(_m.group(1)) <= 30: sys.exit(f"BUILD FAILED: bad line in tools/day_lock.txt: {_l!r}")
+        LOCK[int(_m.group(1))] = (_m.group(2) or "").strip()
+for _d in sorted(LOCK):
+    if not LOCK[_d]: LOCK[_d] = "Unlocks tomorrow" if _d == min(LOCK) else "Unlocks soon"
+    # a locked day must have no synced media left in the deployed tree (old-athlete clips/posters would stay reachable)
+    _cd = os.path.join(ROOT, f"assets/clips/day-{_d:02d}")
+    if os.path.isdir(_cd) and any(f.endswith((".mp4", ".jpg", ".png", ".webp")) for _r, _dn, fs in os.walk(_cd) for f in fs):
+        sys.exit(f"BUILD FAILED: Day {_d} is in tools/day_lock.txt but assets/clips/day-{_d:02d}/ still has media. Delete it "
+                 f"(git rm -r assets/clips/day-{_d:02d}) or, to unlock, delete its line first and sync its Option A clips.")
+def locked(d): return d in LOCK
 def clip(d, i, mid):
     """Clip for step i of move mid on day d, from assets/clips/manifest.json (written by sync_clips.py).
     Only the move a clip actually shows gets it; every other move keeps its ball-path diagram."""
+    if locked(d): return None
     m = CLIPMAN.get(str(d), {})
     folder = m.get(mid) or (m.get("*") if mid == PRIMARY[d] else None)
     if not folder: return None
@@ -194,7 +215,7 @@ def foot():
 <nav aria-label="Social"><a href="https://www.tiktok.com/@thehandleslab">TikTok</a><a href="https://www.instagram.com/handles_lab/">Instagram</a><a href="https://x.com/handleslab">X</a><a href="https://www.youtube.com/@HandlesLab">YouTube</a></nav>
 <p>© {datetime.date.today().year} Handles Lab · Practice safely: clear space, supervise young kids.</p>
 </div></footer>
-<script>window.HL={{tiers:{tiers},order:{json.dumps(TIERS)}}};</script>
+<script>window.HL={{tiers:{tiers},order:{json.dumps(TIERS)},held:{json.dumps(sorted(LOCK))}}};</script>
 <script src="/assets/signup.js" defer></script><script src="/assets/progress.js" defer></script>
 </body></html>
 """
@@ -217,8 +238,12 @@ def signup_form(tag, button, placeholder="you@email.com"):
 def daymap(cur=None, mini=False):
     li = []
     for d in range(1, 31):
-        c = ' class="cur" aria-current="page"' if d == cur else ""
-        li.append(f'<li><a href="/day/{d}/" data-day="{d}" data-ph="{tier_i(d)}" data-tier="{tier(d)}"{c} title="Day {d}: {E(TITLE[d])}">{d}<small>{E(SHORT[d])}</small></a></li>')
+        cl = " ".join(x for x in ("cur" if d == cur else "", "held" if locked(d) else "") if x)
+        c = (f' class="{cl}"' if cl else "") + (' aria-current="page"' if d == cur else "")
+        if locked(d):
+            li.append(f'<li><a href="/day/{d}/" data-day="{d}" data-ph="{tier_i(d)}" data-tier="{tier(d)}" data-held{c} title="Day {d}: {E(LOCK[d])}">{d}<small>🔒 {"Tomorrow" if LOCK[d] == "Unlocks tomorrow" else "Soon"}</small></a></li>')
+        else:
+            li.append(f'<li><a href="/day/{d}/" data-day="{d}" data-ph="{tier_i(d)}" data-tier="{tier(d)}"{c} title="Day {d}: {E(TITLE[d])}">{d}<small>{E(SHORT[d])}</small></a></li>')
     return f'<ol class="map{" mini" if mini else ""}" aria-label="30-day progress map">' + "".join(li) + "</ol>"
 
 def legend():
@@ -361,20 +386,73 @@ def lockbox(d):
 
 def teaser(d):
     if d == 30: return '<div class="teaser"><span class="kicker">Tomorrow</span><p><b>Run the Day 30 gauntlet again and compare it with your Day 1 video.</b></p></div>'
+    if locked(d + 1):
+        return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · 🔒 {E(LOCK[d+1])}</span>'
+                f'<p><b>{E(TITLE[d+1])}</b>: still in the lab. Lock in today\'s steps first.</p>'
+                f'<a href="/day/{d+1}/">See Day {d+1} →</a></div>')
     nxt = days[d + 1]
     main = by[PRIMARY[d + 1]]
     return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · {tier_label(tier(d+1))}</span>'
             f'<p><b>{E(main["move"])}</b>: {E(main["how_it_works"].split(". ")[0].rstrip("."))}.</p>'
             f'<a href="/day/{d+1}/">Peek at Day {d+1} →</a></div>')
 
+# ---------- locked day (tools/day_lock.txt) ----------
+LOCK_SVG = ('<svg class="lk-ic" viewBox="0 0 96 112" width="96" height="112" aria-hidden="true">'
+            '<path d="M24 50V34a24 24 0 0 1 48 0v16" fill="none" stroke="#0e0e10" stroke-width="12" stroke-linecap="round"/>'
+            '<rect x="8" y="46" width="80" height="60" rx="14" fill="#0e0e10"/><rect x="14" y="52" width="68" height="48" rx="10" fill="#F77914"/>'
+            '<circle cx="48" cy="72" r="8" fill="#0e0e10"/><rect x="44" y="74" width="8" height="16" rx="3" fill="#0e0e10"/></svg>')
+LOCK_CSS = """<style>
+.lk{padding:46px 0 30px}
+.lk-card{position:relative;max-width:760px;margin:0 auto;padding:40px 28px 34px;border:4px solid #0e0e10;border-radius:26px;color:#0e0e10;text-align:center;
+background:radial-gradient(rgba(0,0,0,.11) 1.3px,transparent 1.7px) 0 0/12px 12px,radial-gradient(700px 420px at 75% 15%,#FF9A3D,transparent 70%),#F77914;box-shadow:10px 10px 0 #000;overflow:hidden}
+.lk-card::before{content:"";position:absolute;inset:-40%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.10) 0 6deg,transparent 6deg 18deg);pointer-events:none}
+.lk-card>*{position:relative}
+.lk-ic{display:block;margin:0 auto 14px;filter:drop-shadow(5px 5px 0 rgba(0,0,0,.25))}
+.lk-num{display:inline-block;font:400 16px/1 "Anton",Impact,sans-serif;letter-spacing:.12em;text-transform:uppercase;background:#0e0e10;color:#fff;padding:8px 14px;border-radius:999px}
+.lk-card h1{font-size:clamp(38px,7.5vw,72px);margin:16px 0 10px;color:#0e0e10;text-shadow:3px 3px 0 #fff7ef}
+.lk-stamp{display:inline-block;font:400 clamp(24px,4.5vw,36px)/1 "Lucky",Impact,sans-serif;text-transform:uppercase;color:#fff;background:#0e0e10;padding:12px 22px 10px;border-radius:14px;transform:rotate(-3deg);box-shadow:5px 5px 0 rgba(0,0,0,.25);margin:4px 0 18px}
+.lk-card p{max-width:46ch;margin:0 auto 22px;font-size:18px;line-height:1.5;color:#1a1208}
+.lk-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.lk-ctas .btn{background:#0e0e10;color:#fff;border-color:#0e0e10}.lk-ctas .btn:hover{background:#2a2a30;color:#fff;border-color:#2a2a30}
+.lk-ctas .btn.ghost{background:transparent;color:#0e0e10;border-color:#0e0e10}.lk-ctas .btn.ghost:hover{background:#fff7ef;color:#0e0e10}
+.map a.held{opacity:.6}.map a.held small{color:var(--or2)}
+</style>"""
+def locked_page(d):
+    msg = LOCK[d]; soon = msg != "Unlocks tomorrow"
+    body_txt = ("We're filming this day's moves with the Handles Lab athlete right now. Come back tomorrow and it'll be ready to go."
+                if not soon else "This day is still in the lab. We're filming its moves with the Handles Lab athlete, and it opens soon.")
+    open_days = [x for x in range(1, 31) if not locked(x)]
+    desc = f"Day {d} of the free Handles Lab 30-day dribbling challenge: {TITLE[d]}. {msg}."
+    body = f"""<main id="main">
+<section class="lk" style="border:0"><div class="wrap">
+<p class="crumb"><a href="/">Handles Lab</a> / <a href="/#days">30-day challenge</a> / Day {d}</p>
+<div class="lk-card" data-day-locked="{d}">
+{LOCK_SVG}
+<span class="lk-num">Day {d} of 30 · {tier_label(tier(d))}</span>
+<h1>{E(TITLE[d])}</h1>
+<div class="lk-stamp">🔒 {E(msg)}</div>
+<p>{body_txt} Until then, keep stacking reps on the days that are open.</p>
+<div class="lk-ctas"><a class="btn" href="/#days">Back to the challenge →</a><a class="btn ghost" href="/day/{open_days[0]}/">Start Day {open_days[0]} free</a></div>
+</div>
+<div style="margin:34px auto 0;max-width:760px">{daymap(d, mini=True)}</div>
+</div></section>
+<section class="daybody"><div class="wrap" style="max-width:860px">
+<div class="signup" style="margin:10px 0 40px"><div><h2 style="font-size:clamp(28px,4vw,40px)">Get each day in your inbox</h2><p>One short email per day, so you know the moment the next day is ready. No spam, unsubscribe anytime.</p></div>
+<div>{signup_form("challenge", "Email me each day")}</div></div>
+</div></section>
+</main>
+"""
+    return head(f"Day {d}: {TITLE[d]} · {msg} · Handles Lab 30-Day Dribbling Challenge", desc, f"/day/{d}/", LOCK_CSS) + body + foot()
+
 def day_page(d):
     ms = days[d]; ph = PHASES[phase(d) - 1]
     lvl = max(int(m["difficulty"]) for m in ms)
-    review = "".join(f'<li><a href="/day/{p}/">Day {p}: {E(TITLE[p])}</a></li>' for p in range(max(1, d - 3), d))
+    if locked(d): return locked_page(d)
+    review = "".join(f'<li><a href="/day/{p}/">Day {p}: {E(TITLE[p])}{" 🔒" if locked(p) else ""}</a></li>' for p in range(max(1, d - 3), d))
     warm = (f'<div class="warm"><h3>Warm-up · 2-3 min</h3><p style="margin:6px 0 0;color:var(--mute)">Quick review of the last few days, then today\'s new move{"s" if len(ms) > 1 else ""}: Step 1 to Step 4, 3 sets each hand.</p><ul>{review}</ul></div>'
             if d > 1 else '<div class="warm"><h3>How today works</h3><p style="margin:6px 0 0;color:var(--mute)">Do each move from Step 1 to Step 4: 3 sets with each hand. Only move up a step when the one before feels easy. Say the cues out loud.</p></div>')
-    prev = f'<a class="prev" href="/day/{d-1}/"><small>← Day {d-1}</small>{E(TITLE[d-1])}</a>' if d > 1 else '<a class="prev" href="/"><small>← Home</small>The 30-day plan</a>'
-    nxt = f'<a class="next" href="/day/{d+1}/"><small>Day {d+1} →</small>{E(TITLE[d+1])}</a>' if d < 30 else '<a class="next" href="/#app"><small>Finished →</small>What comes next</a>'
+    prev = f'<a class="prev" href="/day/{d-1}/"><small>← Day {d-1}{" 🔒" if locked(d-1) else ""}</small>{E(TITLE[d-1])}</a>' if d > 1 else '<a class="prev" href="/"><small>← Home</small>The 30-day plan</a>'
+    nxt = f'<a class="next" href="/day/{d+1}/"><small>Day {d+1} →{" 🔒 " + E(LOCK[d+1]) if locked(d+1) else ""}</small>{E(TITLE[d+1])}</a>' if d < 30 else '<a class="next" href="/#app"><small>Finished →</small>What comes next</a>'
     items = [g.strip() for m in ms for g in re.split(r"[;,]", m["equipment"])]
     gear = ", ".join(dict.fromkeys(g for g in items if g and g.lower() not in ("none", "none/ball", "no space"))) or "Ball"
     desc = f"Day {d} of the free Handles Lab 30-day dribbling challenge: {TITLE[d]}. Four progressive steps, coaching cues and a kid version."
@@ -431,6 +509,7 @@ def app_data():
         for r in days[d]:
             st = []
             for i in range(1, 5):
+                if locked(d): st.append({"t": r["step" + str(i)], "clip": "", "poster": "", "dg": ""}); continue   # locked: no media at all
                 c = clip(d, i, r["id"])
                 dg = "" if c else (stepdiagram.diagram(r["id"], i, r["cues"], f"a{d}{r['id']}s{i}", r["step" + str(i)]) or "")
                 st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else "", "dg": dg})
@@ -438,7 +517,7 @@ def app_data():
                        "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
                        "path": ballpath.TYPE[r["id"]], "pathLabel": PATH_LABEL[ballpath.TYPE[r["id"]]], "steps": st})
         D.append({"d": d, "title": TITLE[d], "tier": tier(d), "tierLabel": tier_label(tier(d)), "tierN": TIERS.index(tier(d)) + 1, "phase": PHASES[phase(d) - 1][2],
-                  "sub": SUBTITLE.get(d, ""), "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv})
+                  "sub": SUBTITLE.get(d, ""), "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv, **({"lock": LOCK[d]} if locked(d) else {})})
     return {"v": 1, "tiers": TIERS, "days": D}
 
 def app_index():

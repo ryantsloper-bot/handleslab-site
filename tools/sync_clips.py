@@ -24,6 +24,9 @@ LIMIT, PLIMIT = 600_000, 80_000
 # so build.py shows that step's diagram instead. To restore one, delete its line and rerun sync_clips.py + build.py.
 HOLD_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "clip_hold.txt")
 HOLD = {l.split("#")[0].strip() for l in open(HOLD_FILE)} - {""} if os.path.exists(HOLD_FILE) else set()
+# Locked days (tools/day_lock.txt, "N [card text]" per line) are never synced: their page and app show an "Unlocks" card.
+LOCK_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "day_lock.txt")
+LOCKED = {int(l.split("#")[0].split()[0]) for l in open(LOCK_FILE) if l.split("#")[0].strip()} if os.path.exists(LOCK_FILE) else set()
 def held(mp4): return os.path.relpath(os.path.splitext(mp4)[0], SRC) in HOLD
 def skip(mp4):
     r = os.path.relpath(os.path.splitext(mp4)[0], SRC)
@@ -62,12 +65,15 @@ def put(mp4, out):
 if ONLY:
     missing = [o for o in ONLY if not os.path.exists(os.path.join(SRC, o + ".mp4"))]
     if missing: sys.exit(f"--only: no such clip in {SRC}: {missing}")
+    locked_only = sorted(o for o in ONLY if int(o.split("/")[0][4:]) in LOCKED)
+    if locked_only: sys.exit(f"--only: {locked_only} are on a day listed in tools/day_lock.txt; delete that day's line first")
     held_only = ONLY & HOLD
     if held_only: sys.exit(f"--only: {sorted(held_only)} still listed in tools/clip_hold.txt; delete the line first")
 elif os.path.isdir(DST): shutil.rmtree(DST)
 manifest, n = {}, 0
 for ddir in sorted(glob.glob(os.path.join(SRC, "day-[0-9][0-9]"))):
     day = int(os.path.basename(ddir)[4:]); dname = f"day-{day:02d}"; moves = {}
+    if day in LOCKED: print(f"{dname}: locked in tools/day_lock.txt, not synced"); continue
     for mdir in sorted(glob.glob(os.path.join(ddir, "[A-Z][0-9][0-9]"))):          # per-move folders
         files = sorted(glob.glob(os.path.join(mdir, "level-[1-4].mp4")))
         if not files: continue

@@ -1,0 +1,34 @@
+# Challenge days locked behind an "Unlocks" card (site day page + app), so no old white-athlete media shows anywhere.
+# One day per line: "N [card text]". With no text, the lowest locked day says "Unlocks tomorrow" and the rest "Unlocks soon".
+# A locked day carries NO clips, posters, stills or step images, and build.py FAILS if assets/clips/day-NN/ still has media.
+# To unlock a day once its Option A clips are ready:
+#   1. delete its line below
+#   2. python3 tools/sync_clips.py --only day-NN/<MOVEID>/level-N ...   (copies just the Option A clips + versioned posters)
+#   3. python3 tools/build.py && python3 tools/check_prereqs.py           (page + app open with ?v=<md5> clip URLs)
+# A day with no new clips yet (diagrams only, no old media) unlocks with steps 1 and 3 alone.
+# sync_clips.py skips locked days, so a full re-sync can't bring old clips back.
+5 Unlocks tomorrow
+7 Unlocks soon
+8 Unlocks soon
+9 Unlocks soon
+10 Unlocks soon
+11 Unlocks soon
+12 Unlocks soon
+13 Unlocks soon
+14 Unlocks soon
+15 Unlocks soon
+16 Unlocks soon
+17 Unlocks soon
+18 Unlocks soon
+19 Unlocks soon
+20 Unlocks soon
+21 Unlocks soon
+22 Unlocks soon
+23 Unlocks soon
+24 Unlocks soon
+25 Unlocks soon
+26 Unlocks soon
+27 Unlocks soon
+28 Unlocks soon
+29 Unlocks soon
+30 Unlocks soon

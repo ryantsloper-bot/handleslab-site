@@ -15,6 +15,9 @@
   var ti = function (d) { return TIERS.indexOf(day(d).tier); };
   function missingFor(d) { var m = []; for (var x = 1; x < d; x++) if (ti(x) < ti(d) && !done[x]) m.push(x); return m; }
   function locked(d) { return ti(d) > 0 && missingFor(d).length > 0; }
+  // Held days (tools/day_lock.txt): D.lock = "Unlocks tomorrow" / "Unlocks soon". No media in data.js; the app shows the lock card.
+  function held(d) { return !!(day(d) && day(d).lock); }
+  function nextOpen() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d) && !held(d)) return d; return 0; }
   function today() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d)) return d; for (d = 1; d <= 30; d++) if (!done[d]) return d; return 30; }
   function doneToday() { var t = ymd(), last = 0; for (var d in done) if (done[d] === t) last = Math.max(last, +d); return last; }
   function streak() {
@@ -279,12 +282,14 @@
       h += '<div class="hero"><img class="art" src="' + heroArt + '" alt=""><span class="daytag">Done for today</span>' +
         '<h1 class="disp">Day ' + restDay + ' done.</h1><div class="meta"><span>🔥 ' + s + '-day streak</span><span>' + c + '/30 days</span></div>' +
         '<button class="big" data-open="' + d + '">Keep going: Day ' + d + '</button></div>' +
-        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b>' + (cueOf(nx) ? '<p class="mute small" style="margin:4px 0 0">' + esc(cueOf(nx)) + '</p>' : "") + '</div>';
+        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + (nx.lock ? "🔒 " + esc(nx.lock) : esc(nx.tierLabel)) + '</p><b>' + esc(nx.primaryName) + '</b>' + (cueOf(nx) ? '<p class="mute small" style="margin:4px 0 0">' + esc(cueOf(nx)) + '</p>' : "") + '</div>';
     } else {
       h += '<div class="hero"><img class="art" src="' + heroArt + '" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
         '<h1 class="disp">' + esc(D.title) + '</h1>' + (D.sub ? '<p class="kick">' + esc(D.sub) + '</p>' : '') +
         '<div class="meta"><span>' + esc(D.tierLabel) + '</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
-        '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
+        (held(d) ? '<div class="lockpill">🔒 ' + esc(D.lock) + '</div><button class="big" data-open="' + d + '">See Day ' + d + ' →</button></div>' +
+          (nextOpen() && nextOpen() !== d ? '<div class="card tomorrow"><p class="kick">Open now · Day ' + nextOpen() + '</p><b>' + esc(day(nextOpen()).title) + '</b><button class="big or" data-open="' + nextOpen() + '" style="margin-top:10px">Start Day ' + nextOpen() + ' →</button></div>' : "")
+        : '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>');
     }
     h += '<div class="card streakcard"><span class="fl">' + (s ? "🔥" : "🏀") + '</span><div><b>' + s + '</b> <span class="mute">day streak</span>' +
       '<p>' + (dt ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + '</p></div></div>' +
@@ -293,7 +298,7 @@
     if (!restDay) {
       h += '<div class="card"><b>Today\'s moves</b><ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tierLabel) + "</span></li>"; }).join("") +
         '</ul><p class="mute small" style="margin:10px 0 0">Gear: ' + esc(gearOf(D)) + '</p></div>';
-      if (d < 30) { var n2 = day(d + 1); h += '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + n2.d + '</p><b>' + esc(n2.primaryName) + '</b></div>'; }
+      if (d < 30) { var n2 = day(d + 1); h += '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + n2.d + (n2.lock ? " · 🔒 " + esc(n2.lock) : "") + '</p><b>' + esc(n2.lock ? n2.title : n2.primaryName) + '</b></div>'; }
     }
     $("#tab-today").innerHTML = h;
     $("#tab-today").querySelectorAll("[data-share]").forEach(function (b) { b.addEventListener("click", openShare); });
@@ -307,6 +312,7 @@
     var td = today(), c = count();
     var h = '<p class="kick" style="margin-top:6px">30-day map</p><div class="stats"><div class="stat"><b>' + c + '</b><span>days done</span></div><div class="stat"><b>' + streak() + '</b><span>day streak</span></div><div class="stat"><b>' + TIERS.filter(tierDone).length + '/4</b><span>badges</span></div></div>';
     h += '<div class="grid">' + DAYS.map(function (D) {
+      if (D.lock) return '<button class="cell locked held' + (D.d === td && !done[D.d] ? " today" : "") + '" data-t="' + (TIERS.indexOf(D.tier) + 1) + '" data-d="' + D.d + '" aria-label="Day ' + D.d + ': ' + esc(D.lock) + '">' + D.d + "<small>🔒 " + (D.lock === "Unlocks tomorrow" ? "Tmrw" : "Soon") + "</small></button>";
       var cl = "cell" + (done[D.d] ? " done" : locked(D.d) ? " locked" : "") + (D.d === td && !done[D.d] ? " today" : "");
       return '<button class="' + cl + '" data-t="' + (TIERS.indexOf(D.tier) + 1) + '" data-d="' + D.d + '" aria-label="Day ' + D.d + ': ' + esc(D.title) + (done[D.d] ? ", done" : locked(D.d) ? ", locked" : "") + '">' + D.d + "<small>" + (D.d === td && !done[D.d] ? "Today" : "L" + D.tierN) + "</small></button>";
     }).join("") + "</div>";
@@ -318,6 +324,7 @@
     paintTop();
   }
   function daySheet(d) {
+    if (held(d)) return lockCard(d);
     var D = day(d), lk = !done[d] && locked(d), miss = missingFor(d);
     var h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Day ' + d + '"><div class="grab"></div><p class="kick">Day ' + d + " · " + esc(D.tierLabel) + '</p><h2 class="disp">' + esc(D.title) + "</h2>" +
       '<ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tierLabel) + "</span></li>"; }).join("") + "</ul>";
@@ -336,7 +343,27 @@
 
   /* ---------- Player ---------- */
   var P = null;
+  function lockCard(d) {
+    var D = day(d), el = $("#player"), o = nextOpen();
+    var soon = D.lock !== "Unlocks tomorrow";
+    el.innerHTML = '<div class="pbar"><button class="x" aria-label="Close">✕</button></div>' +
+      '<div class="lockcard" role="dialog" aria-modal="true" aria-labelledby="lk-h" data-day-locked="' + d + '">' +
+      '<svg class="lk-ic" viewBox="0 0 96 112" width="84" height="98" aria-hidden="true"><path d="M24 50V34a24 24 0 0 1 48 0v16" fill="none" stroke="#0e0e10" stroke-width="12" stroke-linecap="round"/><rect x="8" y="46" width="80" height="60" rx="14" fill="#0e0e10"/><rect x="14" y="52" width="68" height="48" rx="10" fill="#F77914"/><circle cx="48" cy="72" r="8" fill="#0e0e10"/><rect x="44" y="74" width="8" height="16" rx="3" fill="#0e0e10"/></svg>' +
+      '<span class="lk-num">Day ' + d + ' of 30 · ' + esc(D.tierLabel) + '</span><h1 class="disp" id="lk-h">' + esc(D.title) + '</h1>' +
+      '<div class="lk-stamp">🔒 ' + esc(D.lock) + '</div>' +
+      '<p>' + (soon ? "This day is still in the lab. We're filming its moves with your athlete, and it opens soon." : "We're filming this day's moves with your athlete right now. Come back tomorrow and it'll be ready.") + '</p>' +
+      (o ? '<button class="big ink" data-go-open="' + o + '">Start Day ' + o + ' →</button>' : "") + '<button class="big ghost" data-go-map>Back to the 30 days</button></div>';
+    el.hidden = false; document.body.style.overflow = "hidden";
+    function close() { el.hidden = true; el.innerHTML = ""; document.body.style.overflow = ""; document.removeEventListener("keydown", esck); }
+    function esck(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", esck);
+    $(".x", el).onclick = function () { close(); show(tab); };
+    var go = $("[data-go-open]", el); if (go) go.onclick = function () { close(); openDay(+go.dataset.goOpen, locked(+go.dataset.goOpen)); };
+    $("[data-go-map]", el).onclick = function () { close(); show("map"); };
+    $(".x", el).focus();
+  }
   function openDay(d, preview) {
+    if (held(d)) return lockCard(d);
     var D = day(d), slides = [];
     D.moves.forEach(function (m, mi) {
       m.steps.forEach(function (s, si) { slides.push({ k: "step", m: m, mi: mi, si: si }); });

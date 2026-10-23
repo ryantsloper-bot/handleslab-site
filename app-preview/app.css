@@ -231,3 +231,18 @@ button.flame{color:var(--txt);font:inherit;font-weight:800;min-height:36px}
 .ath-sheet .tones{gap:8px}.ath-sheet .tone{aspect-ratio:1}
 .ath-form{display:flex;flex-direction:column;gap:6px}.ath-form .big{margin-top:8px}
 .picker .ath-cel img{border-radius:0;border:0;box-shadow:none;object-fit:contain;filter:drop-shadow(0 8px 0 rgba(0,0,0,.25))}  /* transparent tone still, not the round Option A crop */
+/* held days (tools/day_lock.txt): lock card, no media */
+.lockpill{display:inline-block;align-self:flex-start;position:relative;background:var(--ink);color:#fff;font:400 18px/1 var(--disp);text-transform:uppercase;padding:10px 14px 8px;border-radius:12px;transform:rotate(-2deg);margin:0 0 12px}
+.cell.held{opacity:.62}.cell.held small{color:var(--or)}
+.lockcard{position:relative;margin:12px 14px;padding:30px 20px 22px;border:4px solid #0e0e10;border-radius:24px;color:#0e0e10;text-align:center;overflow:hidden;
+background:radial-gradient(rgba(0,0,0,.11) 1.3px,transparent 1.7px) 0 0/12px 12px,radial-gradient(500px 320px at 75% 15%,#FF9A3D,transparent 70%),#F77914;box-shadow:8px 8px 0 #000}
+.lockcard::before{content:"";position:absolute;inset:-40%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.10) 0 6deg,transparent 6deg 18deg);pointer-events:none}
+.lockcard>*{position:relative}
+.lockcard .lk-ic{display:block;margin:0 auto 12px;filter:drop-shadow(4px 4px 0 rgba(0,0,0,.25))}
+.lockcard .lk-num{display:inline-block;font:400 14px/1 var(--lab);letter-spacing:.12em;text-transform:uppercase;background:#0e0e10;color:#fff;padding:7px 12px;border-radius:999px}
+.lockcard h1{font-size:clamp(30px,9vw,44px);margin:14px 0 10px;color:#0e0e10;text-shadow:2px 2px 0 #fff7ef}
+.lockcard .lk-stamp{display:inline-block;font:400 24px/1 var(--disp);text-transform:uppercase;color:#fff;background:#0e0e10;padding:11px 18px 9px;border-radius:12px;transform:rotate(-3deg);box-shadow:4px 4px 0 rgba(0,0,0,.25);margin:2px 0 14px}
+.lockcard p{margin:0 auto 18px;max-width:34ch;font-size:16px;line-height:1.5}
+.lockcard .big{width:100%;margin-top:8px}
+.lockcard .big.ink{background:#0e0e10;color:#fff;border-color:#0e0e10}
+.lockcard .big.ghost{background:transparent;color:#0e0e10;border:2px solid #0e0e10}
