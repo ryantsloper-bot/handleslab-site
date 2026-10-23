@@ -118,7 +118,7 @@
       slides.push({ k: "check", m: m, mi: mi });
     });
     slides.push({ k: "finish" });
-    P = { d: d, D: D, preview: !!preview && !done[d] && locked(d), slides: slides, i: 0 };
+    P = { d: d, D: D, preview: !!preview && !done[d] && locked(d), slides: slides, i: 0, reps: {}, timer: {} };
     var el = $("#player");
     el.innerHTML = '<div class="pbar"><button class="x" aria-label="Close">✕</button><div class="segs">' + slides.map(function () { return "<i></i>"; }).join("") + '</div></div>' +
       '<div class="pctx"><span>Day ' + d + " · " + esc(D.tierLabel) + '</span><span class="pos"></span></div><div class="stage"></div>' +
@@ -137,7 +137,8 @@
     render(0);
   }
   function keys(e) { if (!P) return; if (e.key === "ArrowRight") nextAction(true); if (e.key === "ArrowLeft") go(P.i - 1); if (e.key === "Escape") closePlayer(); }
-  function closePlayer() { $("#player").hidden = true; $("#player").innerHTML = ""; document.body.style.overflow = ""; document.removeEventListener("keydown", keys); P = null; show(tab); }
+  function stopTimers() { if (P) for (var k in P.timer) { clearInterval(P.timer[k].run); P.timer[k].run = null; } }
+  function closePlayer() { stopTimers(); $("#player").hidden = true; $("#player").innerHTML = ""; document.body.style.overflow = ""; document.removeEventListener("keydown", keys); P = null; show(tab); }
   function ckey(m) { return P.d + "-" + m.id; }
   function allChecked() { return P.D.moves.every(function (m) { return chk[P.d + "-" + m.id]; }); }
   function nextAction(swipe) {
@@ -145,7 +146,7 @@
     if (s.k === "finish") { if (!swipe) markDone(); return; }
     go(P.i + 1);
   }
-  function go(i) { if (!P || i < 0 || i >= P.slides.length) return; render(i, i > P.i ? "r" : "l"); }
+  function go(i) { if (!P || i < 0 || i >= P.slides.length) return; stopTimers(); render(i, i > P.i ? "r" : "l"); }
   function media(m, s, si) {
     var img = '<img src="/assets/paths/' + m.path + '.svg" alt="Ball path: ' + esc(m.pathLabel) + '" width="160" height="200">';
     var body = s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
@@ -159,7 +160,7 @@
         '<p class="steptext">' + esc(step.t) + "</p>" +
         '<div class="cue"><span>Cues</span><span>' + esc(m.cues) + "</span></div>" +
         '<p class="note">🐢 → 🐇 <span>Slow first. Speed up only once it\'s clean.</span></p>' +
-        (s.si === 0 ? '<details class="kid"><summary>Kid version</summary><p>' + esc(m.kid) + "</p></details>" : "");
+        (s.si === 0 ? '<details class="kid"><summary>Kid version</summary><p>' + esc(m.kid) + "</p></details>" : "") + counterHTML(i, step.t);
     } else if (s.k === "check") {
       var on = !!chk[ckey(s.m)];
       h = '<div class="check"><p class="kick">' + esc(s.m.name) + ' · self-check</p><h2 class="disp">Did you hit 20 clean reps?</h2>' +
@@ -181,6 +182,7 @@
     var yes = n.querySelector(".yes");
     if (yes) yes.onclick = function () { var kk = ckey(s.m); if (chk[kk]) delete chk[kk]; else chk[kk] = 1; save("hl-chk", chk); render(P.i); };
     var redo = n.querySelector("[data-redo]"); if (redo) redo.onclick = function () { go(P.i - 4); };
+    if (s.k === "step") bindCounter(n, i, s);
     var v = n.querySelector("video"); if (v && v.play) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
     // chrome
     el.querySelectorAll(".segs i").forEach(function (b, j) { b.className = j < i ? "on" : j === i ? "cur" : ""; });
@@ -192,6 +194,68 @@
       nx.disabled = !!done[P.d] || P.preview || !allChecked();
     } else { nx.disabled = false; nx.textContent = s.k === "check" ? (chk[ckey(s.m)] ? "Next →" : "Skip for now →") : "Next →"; }
   }
+  /* ---------- rep counter + timer ---------- */
+  var GOAL = 20, CIRC = 2 * Math.PI * 52;
+  function timedSecs(t) { var m = /(\d+)\s?s\b/.exec(t); if (!m) return 0; return +m[1] > 30 ? 60 : 30; }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function counterHTML(i, text) {
+    var tm = P.timer[i] || (P.timer[i] = { on: !!timedSecs(text), secs: timedSecs(text) || 30, left: 0, run: null });
+    return '<div class="counter" data-i="' + i + '">' +
+      '<button class="pad" aria-label="Tap to count a rep"><svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="52" class="trk"/><circle cx="60" cy="60" r="52" class="fill" stroke-dasharray="' + CIRC + '" stroke-dashoffset="' + CIRC + '"/></svg>' +
+      '<span class="num">0</span><span class="of">/ 20</span></button>' +
+      '<div class="ctl"><p class="hint">Tap anywhere here for each clean rep</p>' +
+      '<div class="btns"><button class="minus" aria-label="Minus one">−1</button><button class="reset">Reset</button>' +
+      '<button class="tmr' + (tm.on ? " on" : "") + '" aria-pressed="' + tm.on + '">⏱ Timer</button>' +
+      '<button class="secs"' + (tm.on ? "" : " hidden") + '>' + tm.secs + 's</button></div></div></div>';
+  }
+  function bindCounter(n, i, s) {
+    var box = n.querySelector(".counter"), pad = box.querySelector(".pad"), num = box.querySelector(".num"), of = box.querySelector(".of"),
+      fill = box.querySelector(".fill"), hint = box.querySelector(".hint"), tm = P.timer[i], last = s.si === 3;
+    function paint() {
+      if (tm.on) {
+        var left = tm.run || tm.left ? tm.left : tm.secs;
+        num.textContent = left; of.textContent = "sec"; fill.style.strokeDashoffset = CIRC * (1 - left / tm.secs); box.querySelector(".minus").hidden = true;
+        hint.textContent = tm.run ? "Tap to pause" : left === 0 ? "Time! Tap to go again" : "Tap to start the " + tm.secs + "s timer";
+        box.classList.toggle("goal", left === 0 && !tm.run);
+      } else {
+        var c = P.reps[i] || 0;
+        num.textContent = c; of.textContent = "/ 20"; fill.style.strokeDashoffset = CIRC * (1 - Math.min(c, GOAL) / GOAL);
+        box.classList.toggle("goal", c >= GOAL); box.querySelector(".minus").hidden = false;
+        hint.textContent = c >= GOAL ? (last ? "20 clean reps! Self-check ticked ✓" : "20! Swipe for the next step") : c ? (GOAL - c) + " to go" : "Tap anywhere here for each clean rep";
+      }
+    }
+    function tick() {
+      tm.left -= 1; if (tm.left <= 0) { tm.left = 0; clearInterval(tm.run); tm.run = null; buzz([120, 80, 120]); if (last) autoTick(s); }
+      if (document.body.contains(box)) paint();
+    }
+    pad.addEventListener("click", function () {
+      if (tm.on) {
+        if (tm.run) { clearInterval(tm.run); tm.run = null; }
+        else { if (!tm.left) tm.left = tm.secs; tm.run = setInterval(tick, 1000); buzz(15); }
+      } else {
+        var c = (P.reps[i] || 0) + 1; P.reps[i] = c; buzz(c === GOAL ? [60, 40, 160] : 12);
+        if (c === GOAL && last) autoTick(s);
+        num.classList.remove("bump"); void num.offsetWidth; num.classList.add("bump");
+      }
+      paint();
+    });
+    box.querySelector(".minus").onclick = function () { if (!tm.on) { P.reps[i] = Math.max(0, (P.reps[i] || 0) - 1); paint(); } };
+    box.querySelector(".reset").onclick = function () { if (tm.on) { clearInterval(tm.run); tm.run = null; tm.left = 0; } else P.reps[i] = 0; paint(); };
+    box.querySelector(".tmr").onclick = function () {
+      clearInterval(tm.run); tm.run = null; tm.left = 0; tm.on = !tm.on;
+      this.classList.toggle("on", tm.on); this.setAttribute("aria-pressed", tm.on); box.querySelector(".secs").hidden = !tm.on; paint();
+    };
+    box.querySelector(".secs").onclick = function () { clearInterval(tm.run); tm.run = null; tm.left = 0; tm.secs = tm.secs === 30 ? 60 : 30; this.textContent = tm.secs + "s"; paint(); };
+    box.addEventListener("click", function (e) { if (!e.target.closest("button")) pad.click(); });   // whole panel is the tap target
+    var med = n.querySelector(".media"); if (med) med.addEventListener("click", function () { pad.click(); });
+    paint();
+  }
+  function autoTick(s) {
+    var kk = ckey(s.m); if (chk[kk]) return; chk[kk] = 1; save("hl-chk", chk);
+    var t = document.createElement("div"); t.className = "toast"; t.textContent = "✓ 20 clean reps: " + s.m.name + " checked";
+    document.getElementById("player").appendChild(t); setTimeout(function () { t.remove(); }, 2600);
+  }
+
   function markDone() {
     if (!P || done[P.d] || P.preview || !allChecked()) return;
     var d = P.d; done[d] = ymd(); save("hl-done", done);
