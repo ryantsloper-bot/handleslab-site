@@ -46,8 +46,41 @@ SPECS = {
  ("A15", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None, "down"), ("R", 570, 500, None, "down")],
                   marks=[(1, 215, 352), (2, 300, 612), (3, 505, 352)]),
 }
+# on-the-move helpers (front = direction of travel = up)
+STRIDE = [(300, 448, "a"), (420, 585, "a"), (420, 448, "b"), (300, 585, "b")]       # front foot swaps every step
+def chevrons(x, y, label):
+    c = "".join(f'<path d="M{x-34} {y+i*34+26}L{x} {y+i*34}L{x+34} {y+i*34+26}" fill="none" stroke="{CREAM}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="{.95-i*.3:.2f}"/>' for i in range(3))
+    return c + f'<text x="{x}" y="{y+132}" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}" letter-spacing="2">{label}</text>'
+def chair(x, y):
+    return (f'<g transform="translate({x} {y})"><rect x="-46" y="-40" width="92" height="80" rx="12" fill="{CREAM}" stroke="{INK}" stroke-width="6"/>'
+            f'<rect x="-46" y="-40" width="92" height="20" rx="8" fill="{INK}"/><text y="26" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="26" fill="{INK}">CHAIR</text></g>')
+def back_label(y):
+    return (f'<text x="360" y="{y}" text-anchor="middle" font-family="Lucky,Impact,sans-serif" font-size="34" fill="{INK}" stroke="{CREAM}" stroke-width="10" paint-order="stroke">BEHIND YOUR BACK</text>')
+# between the legs: R hand -> bounce in the gap between front and back foot -> L hand, then back the other way
+THRU = "M525 490 Q450 590 360 510 Q270 430 195 490 Q270 590 360 510 Q450 430 525 490"
+# behind the back: R hip -> around the BACK of the hips (below the body, dashed) -> L hip, then back
+BTB = "M505 485 C540 680 180 680 215 485 C180 680 540 680 505 485"
+BODY_BACK = (f'<path d="M210 470 Q360 545 510 470" fill="none" stroke="{INK}" stroke-width="10" stroke-linecap="round" opacity=".55"/>')
+SPECS.update({
+ ("B10", 3): dict(path=THRU, tag="EVERY STEP", feet=STRIDE, bounces=[(360, 510)],
+                  hands=[("L", 195, 490, None, "left"), ("R", 525, 490, None, "right")],
+                  marks=[(1, 565, 600), (2, 360, 668), (3, 155, 600)], under=chevrons(360, 190, "JOG"), extent=[(326, 190), (394, 330)]),
+ ("B11", 3): dict(path=BTB, tag="BEHIND THE BACK", bounces=[(360, 640)], ghosts=[(215, 485, "a"), (505, 485, "b")],
+                  hands=[("L", 215, 485, None, "left"), ("R", 505, 485, None, "right")],
+                  marks=[(1, 575, 560), (2, 470, 700), (3, 145, 560)], under=chair(360, 215) + back_label(745), over=BODY_BACK,
+                  extent=[(314, 175), (406, 255), (150, 760), (570, 760)]),
+ ("B11", 4): dict(path=BTB, tag="CHANGE DIRECTION", slow=3.4, fast=1.6, bounces=[(360, 640)], ghosts=[(215, 485, "a"), (505, 485, "b")],
+                  hands=[("L", 215, 485, None, "left"), ("R", 505, 485, None, "right")],
+                  marks=[(1, 575, 560), (2, 470, 700), (3, 145, 560)],
+                  under=(f'<path d="M520 300 Q360 170 200 300" fill="none" stroke="{CREAM}" stroke-width="14" stroke-linecap="round"/>'
+                         f'<path d="M222 262L196 306L246 312" fill="none" stroke="{CREAM}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>'
+                         f'<text x="360" y="250" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}" letter-spacing="2">NEW DIRECTION</text>') + back_label(745),
+                  over=BODY_BACK, extent=[(190, 200), (530, 320), (150, 760), (570, 760)]),
+})
+
 # Turned on only where the CEO asked: all Day 5 pretzel steps + the Day 9 steps with no clip.
-ENABLED = {("A08", 1), ("A08", 2), ("A08", 3), ("A08", 4), ("A09", 2), ("A09", 3), ("A09", 4), ("A15", 1)}
+ENABLED = {("A08", 1), ("A08", 2), ("A08", 3), ("A08", 4), ("A09", 2), ("A09", 3), ("A09", 4), ("A15", 1),
+           ("B10", 3), ("B11", 3), ("B11", 4)}
 
 def ball(r=30, ghost=False):
     op = ' opacity=".38"' if ghost else ""
@@ -63,9 +96,18 @@ def chip_box(x, y, side):
             "up": (x - CHIP_W / 2, y - gap - CHIP_H), "down": (x - CHIP_W / 2, y + gap),
             "upright": (x + 18, y - gap - CHIP_H), "upleft": (x - 18 - CHIP_W, y - gap - CHIP_H)}[side]
 
+def feet_of(spec):
+    """[(x, y, phase)] - phase 'a'/'b' feet swap in time with the hands (jogging strides); None = always shown."""
+    return spec.get("feet") or [(x, y, None) for (x, y) in FEET.values()]
+
+def phased(ph, keyvals, T):
+    if not ph: return ""
+    v = "1;0;1;0;1" if ph == "a" else "0;1;0;1;0"
+    return f'<animate attributeName="opacity" values="{v}" keyTimes="{keyvals}" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/>'
+
 def _check(spec, key):
     for (n, x, y) in spec["marks"]:   # numbered markers must never sit on the feet
-        for (fx, fy) in FEET.values():
+        for (fx, fy, _p) in feet_of(spec):
             if ((x - fx) / (36 + 34)) ** 2 + ((y - fy) / (62 + 34)) ** 2 < 1:
                 raise ValueError(f"stepdiagram {key}: marker {n} overlaps a foot")
 
@@ -77,7 +119,8 @@ def _bbox(spec):
         xs += [x - 30, x + 30]; ys += [y - 30, y + 30]      # chips are kept on-card by the fit loop in diagram()
     for (_, x, y) in spec["marks"]: xs += [x - 32, x + 32]; ys += [y - 32, y + 32]
     for (x, y) in spec.get("bounces", []): xs += [x - 62, x + 62]; ys += [y - 40, y + 30]
-    for (x, y) in FEET.values(): xs += [x - 40, x + 40]; ys += [y - 66, y + 66]
+    for (x, y, _p) in feet_of(spec): xs += [x - 40, x + 40]; ys += [y - 66, y + 66]
+    for (x, y) in spec.get("extent", []): xs.append(x); ys.append(y)
     return min(xs), min(ys), max(xs), max(ys)
 
 def diagram(mid, step, cues, uid, step_text=""):
@@ -107,8 +150,10 @@ def diagram(mid, step, cues, uid, step_text=""):
     o.append(f'<g transform="translate(360 {CY}) scale({sc:.3f}) translate({-cx:.1f} {-cy:.1f})">')
     o.append(f'<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="{s["path"]}" stroke="{INK}" stroke-width="20" opacity=".9"/>'
              f'<path d="{s["path"]}" stroke="{WHITE}" stroke-width="8" stroke-dasharray="22 16" opacity=".85"/></g>')
-    for (x, y) in FEET.values():   # plain sneakers, no letters
-        o.append(f'<g transform="translate({x} {y})"><ellipse rx="36" ry="62" fill="{INK}" stroke="{WHITE}" stroke-width="5"/>'
+    a_vals = f"0;{sp*k:.4f};{k:.4f};{k+sp*(1-k):.4f};1"
+    o.append(s.get("under", ""))        # extras drawn under the body (chair, travel arrows, labels)
+    for (x, y, ph) in feet_of(s):   # plain sneakers, no letters
+        o.append(f'<g transform="translate({x} {y})" opacity="{0 if ph == "b" else 1}">{phased(ph, a_vals, T)}<ellipse rx="36" ry="62" fill="{INK}" stroke="{WHITE}" stroke-width="5"/>'
                  f'<ellipse cy="-36" rx="28" ry="20" fill="{OR}"/><path d="M-14 0h28M-14 14h28" stroke="{WHITE}" stroke-width="4" opacity=".6"/></g>')
     hx, hy = HEAD
     o.append(f'<ellipse cx="{hx}" cy="{hy}" rx="150" ry="40" fill="{INK}" opacity=".55" stroke="{WHITE}" stroke-width="5"/>'
@@ -119,7 +164,7 @@ def diagram(mid, step, cues, uid, step_text=""):
     for (n, x, y) in s["marks"]:
         o.append(f'<g transform="translate({x} {y})"><circle r="30" fill="{INK}" stroke="{WHITE}" stroke-width="5"/>'
                  f'<text y="13" text-anchor="middle" font-family="Lucky,Impact,sans-serif" font-size="38" fill="{WHITE}">{n}</text></g>')
-    a_vals = f"0;{sp*k:.4f};{k:.4f};{k+sp*(1-k):.4f};1"
+    o.append(s.get("over", ""))
     for (lab, x, y, ph, side) in s["hands"]:
         anim = ""
         if ph:
@@ -135,7 +180,11 @@ def diagram(mid, step, cues, uid, step_text=""):
     def motion(lead, rotate=False):
         kp = f"{lead:.4f};{1/3 + lead:.4f};{2/3 + lead:.4f}"
         return f'<animateMotion dur="{T:.2f}s" repeatCount="indefinite" path="{d3}" keyPoints="{kp}" keyTimes="{kt}" {spl}{" rotate=\"auto\"" if rotate else ""}/>'
-    o.append(f'<g>{ball(30, ghost=True)}{motion(0.13 / 3)}</g>')                 # ghost ball: the next spot
+    if s.get("ghosts"):      # fixed ghost ball at the spot the ball is heading for (e.g. the far hip)
+        for (x, y, ph) in s["ghosts"]:
+            o.append(f'<g transform="translate({x} {y})" opacity="{0 if ph == "b" else 1}">{phased(ph, a_vals, T)}{ball(30, ghost=True)}</g>')
+    else:
+        o.append(f'<g>{ball(30, ghost=True)}{motion(0.13 / 3)}</g>')                 # ghost ball: the next spot
     o.append(f'<g><path d="M-22 -34L38 0L-22 34L-8 0Z" fill="{WHITE}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>{motion(0.065 / 3, True)}</g>')  # direction arrow
     o.append(f'<g>{ball()}{motion(0)}</g>')
     o.append("</g>")
@@ -150,6 +199,6 @@ def diagram(mid, step, cues, uid, step_text=""):
 
 if __name__ == "__main__":   # preview: python3 tools/stepdiagram.py out.html
     import sys
-    cues = {"A08": "Little hands, fast hands; mini squat; head up", "A09": "Bounce hard; hands ready behind; knees bent", "A15": "Low dribbles; wide stance"}
+    cues = {"A08": "Little hands, fast hands; mini squat; head up", "A09": "Bounce hard; hands ready behind; knees bent", "A15": "Low dribbles; wide stance", "B10": "Bounce as front foot lands; low", "B11": "Body ahead of ball; pull with wrist; eyes up"}
     html = "".join(f'<div style="display:inline-block;width:300px;margin:6px">{diagram(m, st, cues[m], f"{m}{st}")}</div>' for (m, st) in sorted(ENABLED))
     open(sys.argv[1], "w").write('<!doctype html><meta charset="utf-8"><body style="background:#111;margin:0">' + html)
