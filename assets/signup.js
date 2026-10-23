@@ -6,21 +6,16 @@
  * (https://assets.mailerlite.com/jsonp/ACCOUNT_ID/forms/FORM_ID/subscribe) into MAILERLITE below, push.
  *
  * Until a MailerLite URL is set for a tag, signups go to the interim FormSubmit relay, which emails
- * each signup (with its list tag) to INBOX via a random-string alias so the raw address isn't in the page,
- * and if that request fails, the browser opens a pre-filled email to INBOX as a last resort.
+ * each signup (with its list tag) to the Handles Lab inbox via a random-string alias, so no raw address
+ * appears in the page.
  */
 (function () {
   var MAILERLITE = { challenge: "", waitlist: "" };   // <- paste MailerLite form action URLs here
-  var INBOX = "handleslab@mail.grokbot.com";
-  var INTERIM = "https://formsubmit.co/ajax/e5c2ff303dec10e26ab91f646320f41d"; // FormSubmit alias for INBOX (activated 2026-10-23)
+  var INTERIM = "https://formsubmit.co/ajax/e5c2ff303dec10e26ab91f646320f41d"; // FormSubmit alias for the Handles Lab inbox (activated 2026-10-23)
   var COPY = {
     challenge: { ok: "You're in. Day 1 is ready now: grab a ball.", subject: "New Handles Lab challenge signup" },
     waitlist: { ok: "You're on the app waitlist. We'll email you when it opens.", subject: "New Handles Lab app waitlist signup" }
   };
-  function mailto(tag, email, name) {
-    location.href = "mailto:" + INBOX + "?subject=" + encodeURIComponent(COPY[tag].subject) +
-      "&body=" + encodeURIComponent("Please add me (" + tag + "): " + email + (name ? " (" + name + ")" : ""));
-  }
   document.querySelectorAll("form[data-signup]").forEach(function (f) {
     var tag = f.getAttribute("data-signup") in COPY ? f.getAttribute("data-signup") : "challenge";
     var note = f.querySelector(".su-note"), btn = f.querySelector("button");
@@ -44,7 +39,7 @@
           .then(function (j) { if (!j || String(j.success) !== "true") throw new Error((j && j.message) || "failed"); return j; });
       }
       req.then(function () { note.textContent = COPY[tag].ok; f.reset(); })
-         .catch(function () { note.textContent = "Couldn't reach our sign-up service, so we're opening an email instead. Just hit send."; mailto(tag, email, name); })
+         .catch(function () { note.textContent = "Couldn't sign you up just now. Please try again in a minute."; })
          .finally(function () { btn.disabled = false; });
     });
   });
