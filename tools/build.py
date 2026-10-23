@@ -5,6 +5,8 @@ private export step outside this repo) and data/banned-name-hashes.txt, writes:
   index.html, day/1..30/index.html, 404.html, sitemap.xml, robots.txt
 Then scans every generated file and FAILS if any real player name appears."""
 import csv, html, os, re, sys, collections, datetime
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import ballpath
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SITE = "https://handleslab.com"
@@ -48,6 +50,38 @@ def order(ms):  # same-day prerequisites first, then easier first, then id
         else: out += left; break
     return out
 for d in days: days[d] = order(days[d])
+
+# Each day's headline move (the 30-day plan's primary move). Loop clips (content/app-clips/day-NN/level-N.mp4,
+# copied into assets/clips/ by tools/sync_clips.py) belong to this move's Step N.
+PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A08", 6: "A12", 7: "A13", 8: "A14", 9: "A15", 10: "B01", 11: "B04",
+ 12: "B06", 13: "B05", 14: "B07", 15: "C08", 16: "B09", 17: "B10", 18: "C01", 19: "B11", 20: "B18", 21: "B17", 22: "B14",
+ 23: "B15", 24: "B12", 25: "B13", 26: "C10", 27: "B16", 28: "C06", 29: "C02", 30: "C13"}
+assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
+def clip(d, i):
+    base = f"assets/clips/day-{d:02d}/level-{i}"
+    if os.path.exists(os.path.join(ROOT, base + ".mp4")):
+        return "/" + base + ".mp4", ("/" + base + ".jpg") if os.path.exists(os.path.join(ROOT, base + ".jpg")) else ""
+    return None
+PATH_LABEL = {"stance": "stance and slides", "pound": "pound dribble beside the foot", "ladder": "pound at three heights",
+ "slaps": "hand-to-hand taps", "kill": "fast low taps", "vfront": "V in front", "vside": "V at the side", "wrap": "wrap around the body",
+ "fig8": "figure-8 around the legs", "fig8drib": "figure-8 dribble", "cross": "crossover in front", "thru": "between the legs",
+ "behind": "behind the back", "ricochet": "through the legs, catch behind", "speed": "push the ball ahead", "control": "protect with an arm bar",
+ "jumpstop": "two-foot stop", "pivot": "pivot around one foot", "hesi": "pause, then go", "pace": "slow, then fast",
+ "stutter": "quick feet, then go", "inout": "fake in, back out", "skip": "skip, snatch, wrap", "hang": "hang, then cross",
+ "retreat": "back out, re-attack", "snatch": "drive, pull back", "spin": "spin away", "halfspin": "half spin, spin back",
+ "double": "two crossovers", "pushpull": "push out, pull across", "combo": "cross into between the legs", "chain": "three-move chain",
+ "gauntlet": "three-chair gauntlet"}
+
+def step_media(r, d, i):
+    c = clip(d, i) if r["id"] == PRIMARY[d] else None
+    t = ballpath.TYPE[r["id"]]
+    svg = f'<img src="/assets/paths/{t}.svg" width="160" height="200" loading="lazy" alt="Ball path: {E(PATH_LABEL[t])}">'
+    if c:
+        mp4, poster = c
+        return (f'<figure class="media"><video class="loop" muted loop playsinline preload="none" data-src="{mp4}"'
+                f'{f" poster=\"{poster}\"" if poster else ""} width="720" height="900" aria-label="Step {i} loop: {E(r["move"])}"></video>'
+                f'<noscript>{svg}</noscript></figure>')
+    return f'<figure class="media">{svg}</figure>'
 
 # ---------- levels (same mapping as the email sequence: hoops-ai/email/build_emails.py) ----------
 TIERS = ["Beginner", "Intermediate", "Advanced", "Elite"]
@@ -276,13 +310,13 @@ def move_card(r, d):
     for p in pre_ids(r):
         if p in by: pre.append(f'<a href="/day/{dayof[p]}/">{E(name(by[p]))}</a> (Day {dayof[p]})')
     aka = r["aliases"]
-    steps = "".join(f"<li><div><b>Step {i}</b>{E(r['step'+str(i)])}</div></li>" for i in range(1, 5))
+    steps = "".join(f'<li class="stepcard">{step_media(r, d, i)}<div><b>Step {i}</b>{E(r["step"+str(i)])}</div></li>' for i in range(1, 5))
     src = sources(r)
     return f"""<article class="move" id="{r['id'].lower()}">
 <div class="move-head"><h2 style="font-size:clamp(28px,4.5vw,40px)">{E(name(r))}</h2>{diff(r['difficulty'])}</div>
 {f'<p class="aka">Also called: {E(aka)}</p>' if aka else ''}
 <p class="how">{E(r['how_it_works'])}</p>
-<ol class="steps">{steps}</ol>
+<ol class="steps cards">{steps}</ol>
 <div class="cues"><span>Cues</span><span>{E(r['cues'])}</span></div>
 <div class="kid"><span>Kid version</span><span>{E(r['kid_version'])}</span></div>
 <label class="chk"><input type="checkbox" data-chk="{d}-{r['id']}"> <span><b>Self-check:</b> Did you hit 20 clean reps? <small>(at the highest step you reached today)</small></span></label>
@@ -302,7 +336,7 @@ def lockbox(d):
 def teaser(d):
     if d == 30: return '<div class="teaser"><span class="kicker">Tomorrow</span><p><b>Run the Day 30 gauntlet again and compare it with your Day 1 video.</b></p></div>'
     nxt = days[d + 1]
-    main = max(nxt, key=lambda m: int(m["difficulty"]))  # first hardest move = the day's headline move
+    main = by[PRIMARY[d + 1]]
     return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · {tier(d+1)}</span>'
             f'<p><b>{E(main["move"])}</b>: {E(main["how_it_works"].split(". ")[0].rstrip("."))}.</p>'
             f'<a href="/day/{d+1}/">Peek at Day {d+1} →</a></div>')
@@ -378,5 +412,6 @@ for dp, dn, fn in os.walk(ROOT):  # every other text file in the repo is served 
             if m: bad.append(f"{rel}:{i}: '{m}'")
 if bad:
     print("BUILD FAILED: player names found:\n" + "\n".join(bad)); sys.exit(1)
+ballpath.write_all(ROOT)
 for rel, s in out.items(): write(rel, s)
 print(f"built {len(out)} files; days 1-30 cover {len(rows)} moves; name check passed ({len(BANNED)} banned names, whole repo scanned)")
