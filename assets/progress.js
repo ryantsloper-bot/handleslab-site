@@ -86,6 +86,11 @@
   }
   paint();
 })();
+/* Animated step diagrams (inline SVG): hold still for prefers-reduced-motion. */
+(function () {
+  if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+  document.querySelectorAll("svg.dg").forEach(function (sv) { try { sv.pauseAnimations(); sv.setCurrentTime(0); } catch (e) {} });
+})();
 /* Loop clips: load only when on screen, pause when off screen; respect reduced motion. */
 (function () {
   var vids = document.querySelectorAll("video.loop[data-src]"); if (!vids.length) return;

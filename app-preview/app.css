@@ -162,3 +162,5 @@ details.kid p{margin:6px 0 0}
 .sharesheet .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;background:var(--ink3);font-size:18px}
 .sharesheet .cardimg{display:grid;place-items:center;min-height:200px}.sharesheet .cardimg img{height:min(54vh,600px);width:auto;max-width:100%;border-radius:14px;box-shadow:0 8px 0 rgba(0,0,0,.4)}
 .big.share{background:var(--or);color:var(--ink)}.celebrate .big.share{background:var(--ink);color:var(--or)}
+
+.media svg.dg{width:100%;height:100%;display:block}

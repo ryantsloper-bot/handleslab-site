@@ -6,7 +6,7 @@ private export step outside this repo) and data/banned-name-hashes.txt, writes:
 Then scans every generated file and FAILS if any real player name appears."""
 import csv, html, json, os, re, sys, collections, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import ballpath
+import ballpath, stepdiagram
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SITE = "https://handleslab.com"
@@ -87,6 +87,8 @@ def step_media(r, d, i):
         return (f'<figure class="media"><video class="loop" muted loop playsinline preload="none" data-src="{mp4}"'
                 f'{f" poster=\"{poster}\"" if poster else ""} width="720" height="900" aria-label="Step {i} loop: {E(r["move"])}"></video>'
                 f'<noscript>{svg}</noscript></figure>')
+    dg = stepdiagram.diagram(r["id"], i, r["cues"], f"d{d}{r['id']}s{i}", r["step" + str(i)])
+    if dg: return f'<figure class="media dgm">{dg}</figure>'
     return f'<figure class="media">{svg}</figure>'
 
 # ---------- levels (same mapping as the email sequence: hoops-ai/email/build_emails.py) ----------
@@ -413,7 +415,8 @@ def app_data():
             st = []
             for i in range(1, 5):
                 c = clip(d, i, r["id"])
-                st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else ""})
+                dg = "" if c else (stepdiagram.diagram(r["id"], i, r["cues"], f"a{d}{r['id']}s{i}", r["step" + str(i)]) or "")
+                st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else "", "dg": dg})
             mv.append({"id": r["id"], "name": r["move"], "lvl": int(r["difficulty"]), "tier": lvl_word(int(r["difficulty"])), "tierLabel": tier_label(lvl_word(int(r["difficulty"]))),
                        "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
                        "path": ballpath.TYPE[r["id"]], "pathLabel": PATH_LABEL[ballpath.TYPE[r["id"]]], "steps": st})

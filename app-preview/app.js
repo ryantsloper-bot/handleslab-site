@@ -149,9 +149,14 @@
     go(P.i + 1);
   }
   function go(i) { if (!P || i < 0 || i >= P.slides.length) return; stopTimers(); render(i, i > P.i ? "r" : "l"); }
+  // animated step diagrams (inline SVG + SMIL): hold still for prefers-reduced-motion
+  function stillDiagrams(root) {
+    if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) return;
+    root.querySelectorAll("svg.dg").forEach(function (sv) { try { sv.pauseAnimations(); sv.setCurrentTime(0); } catch (e) {} });
+  }
   function media(m, s, si) {
     var img = '<img src="/assets/paths/' + m.path + '.svg" alt="Ball path: ' + esc(m.pathLabel) + '" width="160" height="200">';
-    var body = s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
+    var body = s.dg ? s.dg : s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
     return '<figure class="media">' + body + '<span class="stepno">' + (si + 1) + "</span></figure>";
   }
   function render(i, dir) {
@@ -185,6 +190,7 @@
     if (yes) yes.onclick = function () { var kk = ckey(s.m); if (chk[kk]) delete chk[kk]; else chk[kk] = 1; save("hl-chk", chk); render(P.i); };
     var redo = n.querySelector("[data-redo]"); if (redo) redo.onclick = function () { go(P.i - 4); };
     if (s.k === "step") bindCounter(n, i, s);
+    stillDiagrams(n);
     var v = n.querySelector("video"); if (v && v.play) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
     // chrome
     el.querySelectorAll(".segs i").forEach(function (b, j) { b.className = j < i ? "on" : j === i ? "cur" : ""; });
