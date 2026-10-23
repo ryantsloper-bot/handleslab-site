@@ -6,7 +6,7 @@ Source layouts (both supported, in content/app-clips/):
   day-NN/level-N.mp4 (+ .jpg)           flat clips (original layout)                   -> assets/clips/day-NN/
 Flat clips belong to the move the README table names for that day ("| 06 | Kill dribble (A04) | ...").
 If the README has no row for the day, the manifest stores "*" and build.py uses the day's primary move.
-A per-move folder wins over flat clips for the same move. Moves without clips keep their ball-path diagram.
+If a day has any per-move folder, its flat files are ignored (per-move folders always win). Moves without clips keep their ball-path diagram.
 Every MP4 is kept under ~600 KB (re-encoded with ffmpeg if needed: H.264, no audio, faststart); posters under ~80 KB.
 assets/clips/ is rebuilt from scratch each run, so removed or reassigned clips don't linger. Then run tools/build.py."""
 import os, re, shutil, subprocess, sys, glob, json
@@ -53,11 +53,12 @@ for ddir in sorted(glob.glob(os.path.join(SRC, "day-[0-9][0-9]"))):
         moves[mid] = f"{dname}/{mid}"
     flat = sorted(glob.glob(os.path.join(ddir, "level-[1-4].mp4")))
     fmid = readme_move.get(day, "*")
-    if flat and fmid not in moves:                                                   # flat layout (backward compatible)
+    if flat and moves:
+        # per-move folders win: once a day has any <MOVEID>/ folder, its flat files are ignored (never mapped via README)
+        print(f"{dname}: flat clips ignored, per-move folders present: {', '.join(sorted(moves))}")
+    elif flat:                                                                        # flat layout (backward compatible)
         for f in flat: put(f, os.path.join(DST, dname)); n += 1
         moves[fmid] = dname
-    elif flat:
-        print(f"{dname}: flat clips skipped, {fmid}/ folder takes precedence")
     if moves: manifest[str(day)] = moves
 os.makedirs(DST, exist_ok=True)
 json.dump(manifest, open(os.path.join(DST, "manifest.json"), "w"), indent=1, sort_keys=True)
