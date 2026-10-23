@@ -1,0 +1,230 @@
+/* Handles Lab app v1 (preview). Same localStorage keys as the website day pages, so progress is shared:
+ *   hl-done {day: "YYYY-MM-DD"} · hl-chk {"day-moveId": 1} · hl-badges {Tier: 1}
+ * Lock rule (same as the site): a day is locked until every EARLIER day of a lower level is done. */
+(function () {
+  "use strict";
+  var A = window.HLAPP, DAYS = A.days, TIERS = A.tiers;
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  function load(k) { try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch (e) { return {}; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function ymd(dt) { dt = dt || new Date(); return dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2); }
+  var done = load("hl-done"), chk = load("hl-chk"), badges = load("hl-badges");
+  for (var k in done) if (done[k] === 1) done[k] = "";
+  var day = function (d) { return DAYS[d - 1]; };
+  var ti = function (d) { return TIERS.indexOf(day(d).tier); };
+  function missingFor(d) { var m = []; for (var x = 1; x < d; x++) if (ti(x) < ti(d) && !done[x]) m.push(x); return m; }
+  function locked(d) { return ti(d) > 0 && missingFor(d).length > 0; }
+  function today() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d)) return d; for (d = 1; d <= 30; d++) if (!done[d]) return d; return 30; }
+  function doneToday() { var t = ymd(), last = 0; for (var d in done) if (done[d] === t) last = Math.max(last, +d); return last; }
+  function streak() {
+    var dates = {}; for (var k in done) if (done[k]) dates[done[k]] = 1;
+    var t = new Date(), n = 0; if (!dates[ymd(t)]) t.setDate(t.getDate() - 1);
+    while (dates[ymd(t)]) { n++; t.setDate(t.getDate() - 1); }
+    return n;
+  }
+  function tierDone(t) { return DAYS.every(function (x) { return x.tier !== t || done[x.d]; }); }
+  function currentTier() { for (var i = 0; i < TIERS.length; i++) if (!tierDone(TIERS[i])) return TIERS[i]; return TIERS[TIERS.length - 1]; }
+  function count() { return Object.keys(done).length; }
+
+  /* ---------- header ---------- */
+  function paintTop() {
+    var s = streak(), f = $("#streak");
+    f.querySelector("b").textContent = s; f.classList.toggle("off", !s); f.setAttribute("aria-label", "Streak: " + s + " days");
+    $("#lvlchip").textContent = currentTier();
+  }
+
+  /* ---------- tabs ---------- */
+  var tab = "today";
+  function show(t) {
+    tab = t;
+    document.querySelectorAll(".tabs button").forEach(function (b) { if (b.dataset.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+    ["today", "map", "founding"].forEach(function (x) { $("#tab-" + x).hidden = x !== t; });
+    if (t === "today") renderToday(); if (t === "map") renderMap();
+    window.scrollTo(0, 0);
+    try { history.replaceState(null, "", t === "today" ? "./" : "#" + t); } catch (e) {}
+  }
+  document.querySelectorAll(".tabs button").forEach(function (b) { b.addEventListener("click", function () { show(b.dataset.tab); }); });
+
+  /* ---------- Today ---------- */
+  function gearOf(D) { var g = {}; D.moves.forEach(function (m) { m.gear.split(/[;,]/).forEach(function (x) { x = x.trim(); if (x && !/^(none|none\/ball|no space)$/i.test(x)) g[x] = 1; }); }); return Object.keys(g).join(", ") || "Ball"; }
+  function renderToday() {
+    var dt = doneToday(), d = today(), D = day(d), s = streak(), c = count();
+    var restDay = dt && dt < 30 && !done[30] ? dt : 0;  // finished a day today: show tomorrow first
+    var h = "";
+    if (restDay) {
+      var nx = day(restDay + 1);
+      h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Done for today</span>' +
+        '<h1 class="disp">Day ' + restDay + ' done.</h1><div class="meta"><span>🔥 ' + s + '-day streak</span><span>' + c + '/30 days</span></div>' +
+        '<button class="big" data-open="' + d + '">Keep going: Day ' + d + '</button></div>' +
+        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tier) + '</p><b>' + esc(nx.primaryName) + '</b><p class="mute small" style="margin:4px 0 0">' + esc(nx.title) + '</p></div>';
+    } else {
+      h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
+        '<h1 class="disp">' + esc(D.title) + '</h1>' +
+        '<div class="meta"><span>' + esc(D.tier) + ' · Level ' + D.lvl + '/5</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
+        '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
+    }
+    h += '<div class="card streakcard"><span class="fl">' + (s ? "🔥" : "🏀") + '</span><div><b>' + s + '</b> <span class="mute">day streak</span>' +
+      '<p>' + (dt ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + '</p></div></div>';
+    h += '<div class="card"><div class="row"><b>Your 30 days</b><span class="mute small">' + c + '/30 done</span></div><div class="prog"><i style="width:' + (c / 30 * 100) + '%"></i></div></div>';
+    if (!restDay) {
+      h += '<div class="card"><b>Today\'s moves</b><ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tier) + " · L" + m.lvl + "</span></li>"; }).join("") +
+        '</ul><p class="mute small" style="margin:10px 0 0">Gear: ' + esc(gearOf(D)) + '</p></div>';
+      if (d < 30) { var n2 = day(d + 1); h += '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + n2.d + '</p><b>' + esc(n2.primaryName) + '</b></div>'; }
+    }
+    $("#tab-today").innerHTML = h;
+    $("#tab-today").querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { openDay(+b.dataset.open, locked(+b.dataset.open)); }); });
+    paintTop();
+  }
+
+  /* ---------- Map ---------- */
+  function renderMap() {
+    var td = today(), c = count();
+    var h = '<p class="kick" style="margin-top:6px">30-day map</p><div class="stats"><div class="stat"><b>' + c + '</b><span>days done</span></div><div class="stat"><b>' + streak() + '</b><span>day streak</span></div><div class="stat"><b>' + TIERS.filter(tierDone).length + '/4</b><span>badges</span></div></div>';
+    h += '<div class="grid">' + DAYS.map(function (D) {
+      var cl = "cell" + (done[D.d] ? " done" : locked(D.d) ? " locked" : "") + (D.d === td && !done[D.d] ? " today" : "");
+      return '<button class="' + cl + '" data-t="' + (TIERS.indexOf(D.tier) + 1) + '" data-d="' + D.d + '" aria-label="Day ' + D.d + ': ' + esc(D.title) + (done[D.d] ? ", done" : locked(D.d) ? ", locked" : "") + '">' + D.d + "<small>" + (D.d === td && !done[D.d] ? "Today" : esc(D.tier.slice(0, 3))) + "</small></button>";
+    }).join("") + "</div>";
+    h += '<div class="legend">' + ["#18181b", "#1d1712", "#2a180a", "#3a1c04"].map(function (c, i) { return '<span><i style="background:' + c + '"></i>' + TIERS[i] + "</span>"; }).join("") + "<span>✓ done · 🔒 locked</span></div>";
+    h += '<div class="card"><b>Badges</b><p class="mute small" style="margin:2px 0 10px">Finish every day of a level to earn its badge and unlock the next level.</p><div class="badges">' +
+      TIERS.map(function (t) { return '<span class="badge' + (tierDone(t) ? " on" : "") + '">' + (tierDone(t) ? "🏅 " : "○ ") + t + "</span>"; }).join("") + "</div></div>";
+    $("#tab-map").innerHTML = h;
+    $("#tab-map").querySelectorAll(".cell").forEach(function (b) { b.addEventListener("click", function () { daySheet(+b.dataset.d); }); });
+    paintTop();
+  }
+  function daySheet(d) {
+    var D = day(d), lk = !done[d] && locked(d), miss = missingFor(d);
+    var h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Day ' + d + '"><div class="grab"></div><p class="kick">Day ' + d + " · " + esc(D.tier) + " · Level " + D.lvl + "/5" + '</p><h2 class="disp">' + esc(D.title) + "</h2>" +
+      '<ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>L" + m.lvl + "</span></li>"; }).join("") + "</ul>";
+    if (done[d]) h += '<p class="mute small">✓ Done' + (done[d] ? " on " + esc(done[d]) : "") + '</p><button class="big or" data-go="open">Practice again</button>';
+    else if (lk) h += '<div class="preview-note">🔒 <b>' + esc(D.tier) + " is locked.</b> Finish " + miss.map(function (x) { return "Day " + x; }).join(", ") + ' first.</div><button class="big or" data-go="today">Go to today: Day ' + today() + '</button><button class="big ghost" data-go="preview">Preview anyway</button>';
+    else h += '<button class="big or" data-go="open">Start Day ' + d + "</button>";
+    h += "</div>";
+    var bg = $("#sheet"); bg.innerHTML = h; bg.hidden = false;
+    bg.onclick = function (e) {
+      var g = e.target.closest("[data-go]");
+      if (e.target === bg) { bg.hidden = true; return; }
+      if (!g) return; bg.hidden = true;
+      if (g.dataset.go === "open") openDay(d, false); else if (g.dataset.go === "preview") openDay(d, true); else openDay(today(), locked(today()));
+    };
+  }
+
+  /* ---------- Player ---------- */
+  var P = null;
+  function openDay(d, preview) {
+    var D = day(d), slides = [];
+    D.moves.forEach(function (m, mi) {
+      m.steps.forEach(function (s, si) { slides.push({ k: "step", m: m, mi: mi, si: si }); });
+      slides.push({ k: "check", m: m, mi: mi });
+    });
+    slides.push({ k: "finish" });
+    P = { d: d, D: D, preview: !!preview && !done[d] && locked(d), slides: slides, i: 0 };
+    var el = $("#player");
+    el.innerHTML = '<div class="pbar"><button class="x" aria-label="Close">✕</button><div class="segs">' + slides.map(function () { return "<i></i>"; }).join("") + '</div></div>' +
+      '<div class="pctx"><span>Day ' + d + " · " + esc(D.tier) + '</span><span class="pos"></span></div><div class="stage"></div>' +
+      '<div class="pnav"><button class="big back" aria-label="Back">←</button><button class="big or next">Next →</button></div>';
+    el.hidden = false; document.body.style.overflow = "hidden";
+    $(".x", el).onclick = closePlayer;
+    $(".back", el).onclick = function () { go(P.i - 1); };
+    $(".next", el).onclick = function () { nextAction(); };
+    var st = $(".stage", el), x0 = null, y0 = 0;
+    st.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    st.addEventListener("touchend", function (e) {
+      if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.3) { if (dx < 0) nextAction(true); else go(P.i - 1); }
+    });
+    document.addEventListener("keydown", keys);
+    render(0);
+  }
+  function keys(e) { if (!P) return; if (e.key === "ArrowRight") nextAction(true); if (e.key === "ArrowLeft") go(P.i - 1); if (e.key === "Escape") closePlayer(); }
+  function closePlayer() { $("#player").hidden = true; $("#player").innerHTML = ""; document.body.style.overflow = ""; document.removeEventListener("keydown", keys); P = null; show(tab); }
+  function ckey(m) { return P.d + "-" + m.id; }
+  function allChecked() { return P.D.moves.every(function (m) { return chk[P.d + "-" + m.id]; }); }
+  function nextAction(swipe) {
+    var s = P.slides[P.i];
+    if (s.k === "finish") { if (!swipe) markDone(); return; }
+    go(P.i + 1);
+  }
+  function go(i) { if (!P || i < 0 || i >= P.slides.length) return; render(i, i > P.i ? "r" : "l"); }
+  function media(m, s, si) {
+    var img = '<img src="/assets/paths/' + m.path + '.svg" alt="Ball path: ' + esc(m.pathLabel) + '" width="160" height="200">';
+    var body = s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
+    return '<figure class="media">' + body + '<span class="stepno">' + (si + 1) + "</span></figure>";
+  }
+  function render(i, dir) {
+    var el = $("#player"), st = $(".stage", el), s = P.slides[i], h = "";
+    if (s.k === "step") {
+      var m = s.m, step = m.steps[s.si];
+      h = media(m, step, s.si) + '<p class="stepname">' + esc(m.name) + " · Step " + (s.si + 1) + " of 4</p>" +
+        '<p class="steptext">' + esc(step.t) + "</p>" +
+        '<div class="cue"><span>Cues</span><span>' + esc(m.cues) + "</span></div>" +
+        '<p class="note">🐢 → 🐇 <span>Slow first. Speed up only once it\'s clean.</span></p>' +
+        (s.si === 0 ? '<details class="kid"><summary>Kid version</summary><p>' + esc(m.kid) + "</p></details>" : "");
+    } else if (s.k === "check") {
+      var on = !!chk[ckey(s.m)];
+      h = '<div class="check"><p class="kick">' + esc(s.m.name) + ' · self-check</p><h2 class="disp">Did you hit 20 clean reps?</h2>' +
+        '<p class="mute" style="margin:0">At the highest step you reached today. Clean = in control, eyes up.</p>' +
+        '<button class="yes' + (on ? " on" : "") + '" aria-pressed="' + on + '"><span class="box">' + (on ? "✓" : "") + "</span>Yes, 20 clean reps</button>" +
+        '<button class="linkbtn" data-redo>Not yet: back to Step 1</button></div>';
+    } else {
+      var ok = allChecked();
+      h = '<div class="check" style="padding-top:2vh"><p class="kick">Day ' + P.d + " · finish</p><h2 class=\"disp\">" + (done[P.d] ? "Day done ✓" : ok ? "Lock it in." : "Almost there.") + "</h2>" +
+        '<ul class="summary">' + P.D.moves.map(function (m) { var c = chk[P.d + "-" + m.id]; return "<li>" + esc(m.name) + '<span class="st ' + (c ? "ok\">✓ 20 clean" : "no\">not checked") + "</span></li>"; }).join("") + "</ul>" +
+        (P.preview ? '<div class="preview-note">👀 Preview mode. Finish ' + missingFor(P.d).map(function (x) { return "Day " + x; }).join(", ") + " to unlock this day for real.</div>" : "") + "</div>";
+    }
+    var n = document.createElement("div"); n.className = "slide" + (dir ? " in-" + dir : ""); n.innerHTML = h;
+    var old = st.querySelector(".slide");
+    st.appendChild(n);
+    if (old) { old.classList.add(dir === "l" ? "in-r" : "in-l"); setTimeout(function () { old.remove(); }, 330); }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { n.classList.remove("in-r", "in-l"); }); });
+    P.i = i;
+    var yes = n.querySelector(".yes");
+    if (yes) yes.onclick = function () { var kk = ckey(s.m); if (chk[kk]) delete chk[kk]; else chk[kk] = 1; save("hl-chk", chk); render(P.i); };
+    var redo = n.querySelector("[data-redo]"); if (redo) redo.onclick = function () { go(P.i - 4); };
+    var v = n.querySelector("video"); if (v && v.play) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+    // chrome
+    el.querySelectorAll(".segs i").forEach(function (b, j) { b.className = j < i ? "on" : j === i ? "cur" : ""; });
+    $(".pos", el).textContent = s.k === "step" ? "Move " + (s.mi + 1) + "/" + P.D.moves.length : s.k === "check" ? "Self-check" : "Finish";
+    var nx = $(".next", el), bk = $(".back", el);
+    bk.disabled = i === 0;
+    if (s.k === "finish") {
+      nx.textContent = done[P.d] ? "✓ Day done" : "Day done 🔥";
+      nx.disabled = !!done[P.d] || P.preview || !allChecked();
+    } else { nx.disabled = false; nx.textContent = s.k === "check" ? (chk[ckey(s.m)] ? "Next →" : "Skip for now →") : "Next →"; }
+  }
+  function markDone() {
+    if (!P || done[P.d] || P.preview || !allChecked()) return;
+    var d = P.d; done[d] = ymd(); save("hl-done", done);
+    var earned = null;
+    TIERS.forEach(function (t) { if (!earned && tierDone(t) && !badges[t]) { badges[t] = 1; earned = t; } }); save("hl-badges", badges);
+    $("#player").hidden = true; $("#player").innerHTML = ""; document.removeEventListener("keydown", keys); P = null;
+    celebrate(d, earned);
+  }
+  function celebrate(d, earned) {
+    var c = $("#celebrate"), s = streak(), nx = d < 30 ? day(d + 1) : null, ni = earned ? TIERS[TIERS.indexOf(earned) + 1] : null;
+    c.innerHTML = '<div class="bigflame" aria-hidden="true">🔥</div><div class="count">' + s + '</div><p style="margin:0">day streak</p>' +
+      '<h2 class="disp">Day ' + d + " done!</h2><p>" + count() + "/30 days complete.</p>" +
+      (earned ? '<div class="earned">🏅 ' + earned + " badge earned" + (ni ? " · " + ni + " unlocked" : "") + "</div>" : "") +
+      (nx ? '<div class="tm"><small>Tomorrow · Day ' + nx.d + " · " + esc(nx.tier) + "</small><br><b>" + esc(nx.primaryName) + "</b></div>" : '<div class="tm"><b>You finished all 30 days.</b> Film the gauntlet and compare it with Day 1.</div>') +
+      '<div class="acts"><button class="big" data-c="today">Back to Today</button>' + (d === 30 || earned === "Elite" ? '<button class="big ghost" data-c="founding">See the founding offer</button>' : '<button class="big ghost" data-c="map">Open the map</button>') + "</div>";
+    c.hidden = false; document.body.style.overflow = "hidden";
+    if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      var cols = ["#0e0e10", "#ffffff", "#FF9A3D", "#7be29a", "#ffd23f"];
+      for (var i = 0; i < 70; i++) {
+        var p = document.createElement("i"); p.className = "confetti";
+        p.style.left = Math.random() * 100 + "%"; p.style.background = cols[i % cols.length];
+        p.style.animationDuration = 1.8 + Math.random() * 1.8 + "s"; p.style.animationDelay = Math.random() * .6 + "s";
+        p.style.transform = "rotate(" + Math.random() * 360 + "deg)"; if (i % 3 === 0) p.style.borderRadius = "50%";
+        c.appendChild(p);
+      }
+    }
+    c.onclick = function (e) { var b = e.target.closest("[data-c]"); if (!b) return; c.hidden = true; c.innerHTML = ""; document.body.style.overflow = ""; show(b.dataset.c); };
+    paintTop();
+  }
+
+  /* ---------- boot ---------- */
+  var h0 = (location.hash || "").slice(1);
+  show(["map", "founding"].indexOf(h0) >= 0 ? h0 : "today");
+  if ("serviceWorker" in navigator && window.isSecureContext) addEventListener("load", function () { navigator.serviceWorker.register("/app-preview/sw.js", { scope: "/app-preview/" }).catch(function () {}); });
+  window.HLAPP_DEBUG = { openDay: openDay, celebrate: celebrate, show: show };
+})();

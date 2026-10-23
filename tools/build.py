@@ -395,6 +395,82 @@ out["sitemap.xml"] = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="htt
 out["robots.txt"] = f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n"
 out["site.webmanifest"] = '{"name":"Handles Lab","short_name":"Handles Lab","start_url":"/","display":"standalone","background_color":"#0e0e10","theme_color":"#ff7a1a","icons":[{"src":"/assets/img/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"/assets/img/icon-512.png","sizes":"512x512","type":"image/png"}]}\n'
 
+# ---------- PWA app v1 (unlinked staging: /app-preview/, noindex, not in sitemap) ----------
+import json
+def app_data():
+    D = []
+    for d in range(1, 31):
+        mv = []
+        for r in days[d]:
+            st = []
+            for i in range(1, 5):
+                c = clip(d, i) if r["id"] == PRIMARY[d] else None
+                st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else ""})
+            mv.append({"id": r["id"], "name": r["move"], "lvl": int(r["difficulty"]), "tier": lvl_word(int(r["difficulty"])),
+                       "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
+                       "path": ballpath.TYPE[r["id"]], "pathLabel": PATH_LABEL[ballpath.TYPE[r["id"]]], "steps": st})
+        D.append({"d": d, "title": TITLE[d], "tier": tier(d), "lvl": day_lvl(d), "phase": PHASES[phase(d) - 1][2],
+                  "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv})
+    return {"v": 1, "tiers": TIERS, "days": D}
+
+def app_index():
+    return f"""<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Handles Lab</title>
+<meta name="description" content="Handles Lab app preview.">
+<meta name="theme-color" content="#F77914">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Handles Lab">
+<link rel="manifest" href="/app-preview/manifest.webmanifest">
+<link rel="icon" href="/assets/img/icon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="preload" href="/assets/fonts/luckiest-guy-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/anton-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/app-preview/app.css">
+</head><body>
+<div class="shell">
+<header class="top">
+ <div class="brand"><img src="/assets/img/icon-180.png" alt="" width="30" height="30"><span>Handles Lab</span></div>
+ <div class="top-r"><span class="chip" id="lvlchip">Beginner</span><span class="flame" id="streak" aria-label="Streak"><i>🔥</i><b>0</b></span></div>
+</header>
+<main>
+<section class="panel" id="tab-today" aria-label="Today"></section>
+<section class="panel" id="tab-map" aria-label="Map" hidden></section>
+<section class="panel" id="tab-founding" aria-label="Founding" hidden>
+ <div class="found-hero"><img src="/assets/img/athlete.webp" alt="The Handles Lab athlete spinning a basketball" width="720" height="720"></div>
+ <p class="kick">Founding members</p>
+ <h1 class="disp">The full app is coming.</h1>
+ <p class="lead">This preview runs the free 30-day challenge. The full Handles Lab app adds more moves and lessons and practice plans for each player.</p>
+ <div class="price"><span class="amt">$29.99</span><span class="per">for your first year<br>founding price</span></div>
+ <ul class="ticks"><li>Join the waitlist. We email you once, when the app opens.</li><li>Waitlist members get the $29.99 first-year founding price.</li><li>The 30-day challenge stays free, with or without the app.</li></ul>
+ <div class="found-form">{signup_form("waitlist", "Join the founding waitlist")}</div>
+</section>
+</main>
+<nav class="tabs" aria-label="App">
+ <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Today</span></button>
+ <button data-tab="map"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="2" fill="currentColor"/><rect x="14" y="3" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Map</span></button>
+ <button data-tab="founding"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6 6 1-4.5 4.4 1 6.6L12 17l-5.5 3 1-6.6L3 9l6-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Founding</span></button>
+</nav>
+</div>
+<div class="player" id="player" hidden></div>
+<div class="sheet-bg" id="sheet" hidden></div>
+<div class="celebrate" id="celebrate" hidden></div>
+<script src="/app-preview/data.js"></script>
+<script src="/assets/signup.js" defer></script>
+<script src="/app-preview/app.js" defer></script>
+</body></html>
+"""
+out["app-preview/index.html"] = app_index()
+out["app-preview/data.js"] = "window.HLAPP=" + json.dumps(app_data(), ensure_ascii=False, separators=(",", ":")) + ";\n"
+out["app-preview/manifest.webmanifest"] = json.dumps({"name": "Handles Lab", "short_name": "Handles Lab", "description": "One dribbling move a day. 30 days.",
+    "id": "/app-preview/", "start_url": "/app-preview/", "scope": "/app-preview/", "display": "standalone", "orientation": "portrait",
+    "background_color": "#0e0e10", "theme_color": "#F77914",
+    "icons": [{"src": "/assets/img/icon-192.png", "sizes": "192x192", "type": "image/png"},
+              {"src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png"},
+              {"src": "/assets/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}]}, indent=1) + "\n"
+
 # ---------- guardrail: no player names anywhere that gets served ----------
 bad = []
 for rel, s in out.items():
