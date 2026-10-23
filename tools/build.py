@@ -13,23 +13,25 @@ SITE = "https://handleslab.com"
 E = lambda s: html.escape(str(s), quote=True)
 
 TITLE = {1: "Stance + pound dribble", 2: "Pound ladder: high, middle, low", 3: "V-dribbles, front and side",
- 4: "Ball wraps + figure-8 wrap", 5: "Stationary in-and-out", 6: "Stationary crossover + kill dribble",
+ 4: "Ball wraps + figure-8 wrap", 5: "Stationary crossover + kill dribble", 6: "Stationary in-and-out",
  7: "Between the legs (stationary)", 8: "Behind the back (stationary)", 9: "Figure-8 dribble + ricochet",
  10: "On the move: speed, control, jump stop", 11: "Crossover on the move", 12: "Hesitation / rocker",
- 13: "In-and-out", 14: "Change of pace + stutter step", 15: "First combos: hesi-cross, stutter-cross",
- 16: "The skip dribble", 17: "Between the legs on the move", 18: "Killer crossover",
- 19: "Behind the back on the move", 20: "Double crossover + in-and-out cross", 21: "Hesi-hold crossover",
- 22: "Hang dribble", 23: "Retreat dribble + snatch back", 24: "Front pivot + spin move",
- 25: "Half spin + cross into spin", 26: "Shake and bake", 27: "Push-pull crossover",
- 28: "Combo chains: cross, thru, wrap", 29: "Sequence + snatch-back crossover", 30: "Final gauntlet: film it, compare to Day 1"}
-SHORT = {1: "Pound", 2: "Ladder", 3: "V-dribble", 4: "Wraps", 5: "In-out", 6: "Cross", 7: "Thru", 8: "Behind",
- 9: "Figure-8", 10: "Move", 11: "Cross", 12: "Hesi", 13: "In-out", 14: "Pace", 15: "Combos", 16: "Skip",
- 17: "Thru", 18: "Killer", 19: "Behind", 20: "Double", 21: "Hold", 22: "Hang", 23: "Snatch", 24: "Spin",
- 25: "Half spin", 26: "Shake", 27: "Push-pull", 28: "Chains", 29: "Sequence", 30: "Final"}
-PHASES = [(1, 9, "Stationary", "Ball control without moving your feet. Pound, V-dribbles, wraps, crossover, through the legs, behind the back. No space needed."),
-          (10, 14, "On the move", "Take it into a hallway or driveway: speed and control dribbles, the crossover on the move, hesitation, in-and-out, change of pace."),
-          (15, 27, "Combos", "Harder moves and your first combos: between the legs and behind the back on the move, hang, snatch back, spin, shake and bake."),
-          (28, 30, "Chains", "String it all together into nonstop chains, then the Day 30 gauntlet. Film it and compare it to Day 1.")]
+ 13: "In-and-out", 14: "Change of pace + stutter step", 15: "The skip dribble",
+ 16: "Between the legs on the move", 17: "Behind the back on the move", 18: "Hesi-hold crossover",
+ 19: "Hang dribble", 20: "Retreat dribble + snatch back", 21: "Front pivot + spin move",
+ 22: "First combos: hesi-cross, stutter-cross", 23: "Killer crossover", 24: "Double crossover + in-and-out cross",
+ 25: "Half spin + cross into spin", 26: "Shake and bake", 27: "Combo chains: cross, thru, wrap",
+ 28: "Sequence + snatch-back crossover", 29: "Push-pull crossover", 30: "Final gauntlet: every move at game speed"}
+SHORT = {1: "Pound", 2: "Ladder", 3: "V-dribble", 4: "Wraps", 5: "Cross", 6: "In-out", 7: "Thru", 8: "Behind",
+ 9: "Figure-8", 10: "Move", 11: "Cross", 12: "Hesi", 13: "In-out", 14: "Pace", 15: "Skip", 16: "Thru",
+ 17: "Behind", 18: "Hold", 19: "Hang", 20: "Snatch", 21: "Spin", 22: "Combos", 23: "Killer", 24: "Double",
+ 25: "Half spin", 26: "Shake", 27: "Chains", 28: "Sequence", 29: "Push-pull", 30: "Final"}
+# A subtitle shown under a day's title (site day page + app), e.g. where a new phase starts.
+SUBTITLE = {10: "Phase 2: On the move"}
+PHASES = [(1, 9, "Stationary", "Ball control without moving your feet. Pound, V-dribbles, wraps, the crossover, in-and-out, through the legs, behind the back. No space needed."),
+          (10, 21, "On the move", "Take it into a hallway or driveway: speed and control, the crossover, hesitation, in-and-out, change of pace, skip, between the legs and behind the back, hang, snatch back, the spin."),
+          (22, 28, "Combos", "Put moves together: hesi-cross, killer crossover, double cross, cross into spin, shake and bake, and nonstop combo chains."),
+          (29, 30, "Finale", "The hardest single move, the push-pull crossover. Then the Day 30 gauntlet: every move chained at game speed. Film it and compare to Day 1.")]
 def phase(d): return next(i + 1 for i, p in enumerate(PHASES) if p[0] <= d <= p[1])
 
 # ---------- data ----------
@@ -53,9 +55,9 @@ for d in days: days[d] = order(days[d])
 
 # Each day's headline move (the 30-day plan's primary move). Loop clips (content/app-clips/day-NN/level-N.mp4,
 # copied into assets/clips/ by tools/sync_clips.py) belong to this move's Step N.
-PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A21", 6: "A12", 7: "A13", 8: "A14", 9: "A15", 10: "B01", 11: "B04",
- 12: "B06", 13: "B05", 14: "B07", 15: "C08", 16: "B09", 17: "B10", 18: "C01", 19: "B11", 20: "B18", 21: "B17", 22: "B14",
- 23: "B15", 24: "B12", 25: "B13", 26: "C10", 27: "B16", 28: "C06", 29: "C02", 30: "C13"}
+PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A12", 6: "A21", 7: "A13", 8: "A14", 9: "A15", 10: "B01", 11: "B04",
+ 12: "B06", 13: "B05", 14: "B07", 15: "B09", 16: "B10", 17: "B11", 18: "B17", 19: "B14", 20: "B15", 21: "B12", 22: "C08",
+ 23: "C01", 24: "B18", 25: "B13", 26: "C10", 27: "C06", 28: "C02", 29: "B16", 30: "C13"}
 assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
 CLIPMAN = json.load(open(os.path.join(ROOT, "assets/clips/manifest.json"))) if os.path.exists(os.path.join(ROOT, "assets/clips/manifest.json")) else {}
 def clip(d, i, mid):
@@ -93,10 +95,10 @@ def step_media(r, d, i):
 
 # ---------- levels (same mapping as the email sequence: hoops-ai/email/build_emails.py) ----------
 TIERS = ["Beginner", "Intermediate", "Advanced", "Elite"]
-TIER_TXT = {"Beginner": "Ball control and your first moves on the move: pound, V-dribbles, wraps, crossovers, hesitation, change of pace.",
-            "Intermediate": "Between the legs and behind the back on the move, first combos, hang dribble, snatch back, the spin.",
-            "Advanced": "Half spin, shake and bake, and the nonstop combo chains that finish the challenge.",
-            "Elite": "The push-pull crossover: the hardest single move in the 30 days."}
+TIER_TXT = {"Beginner": "Ball control and your first moves on the move: pound, V-dribbles, wraps, crossover, in-and-out, hesitation, change of pace, skip.",
+            "Intermediate": "Between the legs and behind the back on the move, hesi-hold, hang, snatch back, the spin, then your first combos.",
+            "Advanced": "Half spin, cross into spin, shake and bake, and the nonstop combo chains.",
+            "Elite": "The push-pull crossover, then the Day 30 gauntlet: every move chained at game speed."}
 def lvl_word(n): return {1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Advanced", 5: "Elite"}[n]
 def tier_label(t): return f"Level {TIERS.index(t) + 1} of 4 · {t}"   # the ONE way levels are counted everywhere
 def day_lvl(d): return max(int(m["difficulty"]) for m in days[d])
@@ -299,7 +301,7 @@ Join the waitlist to hear when it opens. Founding price: <b style="color:#fff">$
 <section id="faq"><div class="wrap" style="max-width:820px">
 <div class="sec-head"><span class="kicker">FAQ</span><h2>Questions</h2></div>
 <details><summary>Is it really free?</summary><p>Yes. All 30 days are on this site, free, with no account. The paid app is a separate, optional product for later.</p></details>
-<details><summary>What age is it for?</summary><p>Anyone who can bounce a ball. Days 1-14 are Level 1 of 4 · Beginner moves a young kid can start with; every day includes a kid version. Later days reach Advanced and Elite for older players.</p></details>
+<details><summary>What age is it for?</summary><p>Anyone who can bounce a ball. Days {ranges(tier_days('Beginner'))} are Level 1 of 4 · Beginner moves a young kid can start with; every day includes a kid version. Later days reach Advanced and Elite for older players.</p></details>
 <details><summary>Do I need a hoop or a court?</summary><p>No. It's dribbling only. Days 1-9 need about a 3x3 ft spot; later days use 1-3 chairs or cones and up to 20 ft of hallway or driveway.</p></details>
 <details><summary>What if we miss a day or a move is too hard?</summary><p>Repeat the day. Stay on Step 1 or 2 until it feels easy. The challenge is 30 lessons, not 30 calendar days.</p></details>
 <details><summary>How do I track progress?</summary><p>Tap "Mark day done" at the bottom of each day. It's saved in your browser on that device, and the 30-day map shows a ✓ on finished days.</p></details>
@@ -375,6 +377,7 @@ def day_page(d):
 <p class="crumb"><a href="/">Handles Lab</a> / <a href="/#days">30-day challenge</a> / Day {d}</p>
 <div class="daynum">Day {d} of 30 · {tier_label(tier(d))}</div>
 <h1>{E(TITLE[d])}</h1>
+{f'<p class="kicker" style="margin:10px 0 0">{E(SUBTITLE[d])}</p>' if d in SUBTITLE else ''}
 <ul class="meta"><li>{len(ms)} move{"s" if len(ms) > 1 else ""}</li><li>{tier_label(tier(d))}</li><li>Gear: {E(gear)}</li></ul>
 <div style="margin-top:26px">{daymap(d, mini=True)}</div>
 {lockbox(d)}
@@ -421,7 +424,7 @@ def app_data():
                        "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
                        "path": ballpath.TYPE[r["id"]], "pathLabel": PATH_LABEL[ballpath.TYPE[r["id"]]], "steps": st})
         D.append({"d": d, "title": TITLE[d], "tier": tier(d), "tierLabel": tier_label(tier(d)), "tierN": TIERS.index(tier(d)) + 1, "phase": PHASES[phase(d) - 1][2],
-                  "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv})
+                  "sub": SUBTITLE.get(d, ""), "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv})
     return {"v": 1, "tiers": TIERS, "days": D}
 
 def app_index():

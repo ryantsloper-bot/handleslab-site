@@ -60,7 +60,7 @@
         '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b><p class="mute small" style="margin:4px 0 0">' + esc(nx.title) + '</p></div>';
     } else {
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
-        '<h1 class="disp">' + esc(D.title) + '</h1>' +
+        '<h1 class="disp">' + esc(D.title) + '</h1>' + (D.sub ? '<p class="kick">' + esc(D.sub) + '</p>' : '') +
         '<div class="meta"><span>' + esc(D.tierLabel) + '</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
         '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
     }
