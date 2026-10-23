@@ -520,7 +520,7 @@
   }
 
   /* ---------- streak share card (no name, no photo: just the streak; with the picker flag: the athlete's name + tone still) ---------- */
-  var SHARE_ORIGIN = "http://handleslab.com";   // switch to https://handleslab.com once the Pages certificate is issued
+  var SHARE_ORIGIN = "https://handleslab.com";
   var SHARE_URL = SHARE_ORIGIN + "/?ref=streak";
   function lastDone() { for (var d = 30; d >= 1; d--) if (done[d]) return d; return 0; }
   function loadImg(src) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
