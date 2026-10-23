@@ -294,37 +294,55 @@
   function lastDone() { for (var d = 30; d >= 1; d--) if (done[d]) return d; return 0; }
   function loadImg(src) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
   function drawCard() {
-    // 9:16 Story card. Story UI safe zones: nothing in the top 250px or bottom 340px (y 250-1580 only).
+    // 9:16 Story card. Story UI safe zones: no text in the top 250px or bottom 340px (text only in y 250-1580).
     var W = 1080, H = 1920, TOP = 250, BOT = H - 340, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     var x = cv.getContext("2d"), s = streak(), c = count(), ld = lastDone(), D = ld ? day(ld) : null;
     var fonts = document.fonts ? Promise.all([document.fonts.load('120px "Lucky"'), document.fonts.load('40px "Anton"')]).catch(function () {}) : Promise.resolve();
-    return Promise.all([fonts, loadImg("/assets/img/athlete.jpg")]).then(function (r) {
-      var img = r[1];
-      x.fillStyle = "#F77914"; x.fillRect(0, 0, W, H);
-      if (img) x.drawImage(img, 0, 0, img.width, img.height * .74, 0, TOP, W, W * .74);   // art 250-1049
-      var g = x.createLinearGradient(0, 850, 0, 1100); g.addColorStop(0, "rgba(14,14,16,0)"); g.addColorStop(1, "rgba(14,14,16,1)");
-      x.fillStyle = g; x.fillRect(0, 850, W, 252); x.fillStyle = "#0e0e10"; x.fillRect(0, 1100, W, H - 1100);
-      // brand tag (inside safe zone)
-      x.fillStyle = "#0e0e10"; rr(x, 48, TOP + 30, 330, 70, 35); x.fill();
-      x.fillStyle = "#fff"; x.font = '400 36px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.textAlign = "left"; x.fillText("HANDLES LAB", 82, TOP + 66);
-      // big streak
+    return Promise.all([fonts, loadImg("/assets/img/athlete.jpg"), loadImg("/assets/img/icon-180.png")]).then(function (r) {
+      var img = r[1], logo = r[2], AY = 330, AH = W * .74, base = "#F7841A";
+      x.fillStyle = base; x.fillRect(0, 0, W, H);
+      if (img) {
+        x.drawImage(img, 0, 0, img.width, img.height * .74, 0, AY, W, AH);   // art 330-1129
+        // extend the art upward: stretch its top rows over the band (each column keeps its own colour),
+        // then feather that band 140px into the art so there is no line
+        var bd = document.createElement("canvas"), FE = 140; bd.width = W; bd.height = AY + FE; var bx = bd.getContext("2d");
+        var sm = document.createElement("canvas"); sm.width = 24; sm.height = 1;   // average the top rows into 24 soft columns (no streaks)
+        sm.getContext("2d").drawImage(img, 0, 0, img.width, 10, 0, 0, 24, 1);
+        bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = "high"; bx.drawImage(sm, 0, 0, 24, 1, 0, 0, W, AY + FE);
+        halftone(bx, 0, 0, W, AY + FE, "rgba(120,40,0,.08)", 14);   // comic dot texture, fades out with the band
+        var m = bx.createLinearGradient(0, 0, 0, AY + FE); m.addColorStop(0, "rgba(0,0,0,1)"); m.addColorStop(AY / (AY + FE), "rgba(0,0,0,1)"); m.addColorStop(1, "rgba(0,0,0,0)");
+        bx.globalCompositeOperation = "destination-in"; bx.fillStyle = m; bx.fillRect(0, 0, W, AY + FE);   // one rect: destination-in clears outside it
+        x.drawImage(bd, 0, 0);
+      }
+      var g = x.createLinearGradient(0, 860, 0, 1090); g.addColorStop(0, "rgba(14,14,16,0)"); g.addColorStop(1, "rgba(14,14,16,1)");
+      x.fillStyle = g; x.fillRect(0, 860, W, 232); x.fillStyle = "#0e0e10"; x.fillRect(0, 1090, W, H - 1090);
+      halftone(x, 0, 1600, W, H - 1600, "rgba(247,121,20,.10)", 16);   // background texture in the bottom zone (no text)
+      // logo lockup: round app icon + wordmark, as in the header
+      x.font = '400 48px "Lucky", Impact, sans-serif'; var wm = "HANDLES LAB", ww = x.measureText(wm).width, lw = 84 + 18 + ww + 44, lx = (W - lw) / 2, ly = TOP + 12;
+      x.fillStyle = "#0e0e10"; rr(x, lx, ly, lw, 104, 52); x.fill();
+      if (logo) { x.save(); x.beginPath(); x.arc(lx + 10 + 42, ly + 52, 42, 0, Math.PI * 2); x.clip(); x.drawImage(logo, lx + 10, ly + 10, 84, 84); x.restore(); }
+      x.fillStyle = "#fff"; x.textAlign = "left"; x.textBaseline = "middle"; x.fillText(wm, lx + 10 + 84 + 18, ly + 56);
+      // streak block
       x.textAlign = "center"; x.textBaseline = "alphabetic";
-      x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 1170);
-      x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 1170);
-      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 1265);
-      x.font = '400 40px "Anton", Impact, sans-serif'; x.fillStyle = "#f6f2ec";
-      x.fillText(D ? ("DAY " + ld + " OF 30 · " + D.tierLabel.toUpperCase()) : "30-DAY DRIBBLING CHALLENGE", W / 2, 1330);
-      // 30-day strip
+      x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 1085);
+      x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 1085);
+      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 1180);
+      if (D) {
+        fit(x, "Day " + ld + " · " + moveTitle(D.primaryName), W - 140, 60, '"Anton", Impact, sans-serif'); x.fillStyle = "#fff"; x.fillText(x.__t, W / 2, 1262);
+        x.font = '400 36px "Anton", Impact, sans-serif'; x.fillStyle = "#b6b0a8"; x.fillText(D.tierLabel.toUpperCase() + " · " + c + "/30 DAYS DONE", W / 2, 1316);
+      } else { x.font = '400 44px "Anton", Impact, sans-serif'; x.fillStyle = "#fff"; x.fillText("30-DAY DRIBBLING CHALLENGE", W / 2, 1290); }
       var cw = 26, gap = 6, x0 = (W - (30 * cw + 29 * gap)) / 2;
-      for (var i = 1; i <= 30; i++) { x.fillStyle = done[i] ? "#F77914" : "#2c2c33"; rr(x, x0 + (i - 1) * (cw + gap), 1365, cw, 50, 8); x.fill(); }
-      x.font = '700 34px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'; x.fillStyle = "#b6b0a8";
-      x.fillText(c + "/30 days done · free 30-day dribbling challenge", W / 2, 1466);
-      // site + handle pill, bottom edge at the safe line
-      x.fillStyle = "#F77914"; rr(x, 90, 1496, W - 180, 84, 42); x.fill();
-      x.fillStyle = "#0e0e10"; x.font = '400 46px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.fillText("handleslab.com · @thehandleslab", W / 2, BOT - 42);
+      for (var i = 1; i <= 30; i++) { x.fillStyle = done[i] ? "#F77914" : "#2c2c33"; rr(x, x0 + (i - 1) * (cw + gap), 1350, cw, 48, 8); x.fill(); }
+      if (!D) { x.font = '400 36px "Anton", Impact, sans-serif'; x.fillStyle = "#b6b0a8"; x.fillText(c + "/30 DAYS DONE", W / 2, 1316); }
+      x.font = '400 46px "Lucky", Impact, sans-serif'; x.fillStyle = "#fff"; x.fillText("START YOUR STREAK, IT'S FREE", W / 2, 1468);
+      x.fillStyle = "#F77914"; rr(x, 90, 1504, W - 180, 76, 38); x.fill();   // pill bottom = 1580 safe line
+      x.fillStyle = "#0e0e10"; x.font = '400 44px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.fillText("handleslab.com · @thehandleslab", W / 2, 1544);
       return cv;
     });
   }
+  function halftone(x, a, b, w, h, col, step) { x.save(); x.fillStyle = col; for (var yy = b; yy < b + h; yy += step) for (var xx = a + ((yy / step) % 2 ? step / 2 : 0); xx < a + w; xx += step) { x.beginPath(); x.arc(xx, yy, step * .22, 0, 6.283); x.fill(); } x.restore(); }
+  function moveTitle(n) { return n.replace(/\s*\(.*?\)\s*/g, " ").trim().replace(/(^|[\s-])([a-z])/g, function (m, p, ch) { return p + ch.toUpperCase(); }).replace(/\b(And|The|Of|Into|To|A|In)\b(?!$)/g, function (w, _, i) { return i ? w.toLowerCase() : w; }); }
+  function fit(x, t, max, px, fam) { do { x.font = "400 " + px + "px " + fam; px -= 2; } while (x.measureText(t).width > max && px > 30); x.__t = t; }
   function rr(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
   function openShare() {
     var o = document.getElementById("sharesheet");
