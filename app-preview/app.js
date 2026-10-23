@@ -80,6 +80,8 @@
 
   /* ---------- Today ---------- */
   function gearOf(D) { var g = {}; D.moves.forEach(function (m) { m.gear.split(/[;,]/).forEach(function (x) { x = x.trim(); if (x && !/^(none|none\/ball|no space)$/i.test(x)) g[x] = 1; }); }); return Object.keys(g).join(", ") || "Ball"; }
+  // one-line cue of a day's headline move (the challenge data's cues field), "" if it has none
+  function cueOf(D) { var m = D.moves.filter(function (x) { return x.id === D.primary; })[0] || D.moves[0]; return m && m.cues ? String(m.cues).trim() : ""; }
   function renderToday() {
     var dt = doneToday(), d = today(), D = day(d), s = streak(), c = count();
     var restDay = dt && dt < 30 && !done[30] ? dt : 0;  // finished a day today: show tomorrow first
@@ -89,7 +91,7 @@
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Done for today</span>' +
         '<h1 class="disp">Day ' + restDay + ' done.</h1><div class="meta"><span>🔥 ' + s + '-day streak</span><span>' + c + '/30 days</span></div>' +
         '<button class="big" data-open="' + d + '">Keep going: Day ' + d + '</button></div>' +
-        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b><p class="mute small" style="margin:4px 0 0">' + esc(nx.title) + '</p></div>';
+        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b>' + (cueOf(nx) ? '<p class="mute small" style="margin:4px 0 0">' + esc(cueOf(nx)) + '</p>' : "") + '</div>';
     } else {
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
         '<h1 class="disp">' + esc(D.title) + '</h1>' + (D.sub ? '<p class="kick">' + esc(D.sub) + '</p>' : '') +
