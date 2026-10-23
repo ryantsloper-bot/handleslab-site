@@ -5,8 +5,23 @@
  *
  * MailerLite is live for both tags. If a MailerLite request fails, the signup falls back to the FormSubmit
  * relay, which emails it (with its list tag) to the Handles Lab inbox via a random-string alias.
+ *
+ * Signup source: ?ref=<code> on any page is saved in localStorage ("hl-ref", latest URL code wins) and sent
+ * to MailerLite as fields[ref]. With no ref code at all, TikTok's in-app browser is tagged "tt-inapp";
+ * a real ref code always replaces it.
  */
 (function () {
+  var REF_KEY = "hl-ref";
+  function clean(v) { v = String(v || "").trim().toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40); return v || ""; }
+  var REF = (function () {
+    var fromUrl = "", stored = "";
+    try { fromUrl = clean(new URLSearchParams(location.search).get("ref")); } catch (e) {}
+    try { stored = clean(localStorage.getItem(REF_KEY)); } catch (e) {}
+    var ref = fromUrl || stored;
+    if (!ref && /musical_ly|BytedanceWebview|TikTok|trill/i.test(navigator.userAgent || "")) ref = "tt-inapp";
+    if (ref && ref !== stored) { try { localStorage.setItem(REF_KEY, ref); } catch (e) {} }
+    return ref;
+  })();
   var MAILERLITE = {                                   // MailerLite account 2735408, one form per group
     challenge: "https://assets.mailerlite.com/jsonp/2735408/forms/202091683553215553/subscribe",
     waitlist: "https://assets.mailerlite.com/jsonp/2735408/forms/202091858275337947/subscribe"
@@ -28,13 +43,14 @@
       btn.disabled = true; note.textContent = "Signing you up…";
       function viaFormSubmit() {
         return fetch(INTERIM, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
-          body: JSON.stringify({ email: email, name: name, list: tag, page: location.pathname, _subject: COPY[tag].subject, _template: "table", _captcha: "false" }) })
+          body: JSON.stringify({ email: email, name: name, list: tag, ref: REF, page: location.pathname, _subject: COPY[tag].subject, _template: "table", _captcha: "false" }) })
           .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
           .then(function (j) { if (!j || String(j.success) !== "true") throw new Error((j && j.message) || "failed"); return j; });
       }
       function viaMailerLite() {
         var fd = new FormData();
         fd.append("fields[email]", email); if (name) fd.append("fields[name]", name);
+        if (REF) fd.append("fields[ref]", REF);
         fd.append("ml-submit", "1"); fd.append("anticsrf", "true");
         return fetch(MAILERLITE[tag], { method: "POST", body: fd })           // CORS-enabled; returns {"success":true}
           .then(function (r) { return r.json(); })
