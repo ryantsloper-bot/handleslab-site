@@ -233,7 +233,7 @@ def landing():
 <div class="ctas"><a class="btn" href="/day/1/">Start Day 1 free →</a><a class="btn ghost" href="#days">See all 30 days</a></div>
 <ul class="facts"><li>100% free</li><li>10-15 minutes a day</li><li>Kid tips every day</li><li>No sign-up needed</li></ul>
 </div>
-<div class="hero-art"><img src="/assets/img/hero.webp" width="720" height="1280" alt="The Handles Lab athlete: a faceless white comic-style player spinning a basketball on one finger" fetchpriority="high">
+<div class="hero-art"><img src="/assets/img/hero.webp" width="720" height="1280" alt="The Handles Lab athlete: a faceless comic-style player in an orange headband and black-and-orange jersey, spinning a basketball on one finger" fetchpriority="high">
 <span class="badge">Day 1 → Day 30</span></div>
 </div></section>
 
