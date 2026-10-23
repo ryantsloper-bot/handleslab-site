@@ -5,14 +5,14 @@
  * one embedded form per group (or one form + group), copy each form's <form action="..."> URL
  * (https://assets.mailerlite.com/jsonp/ACCOUNT_ID/forms/FORM_ID/subscribe) into MAILERLITE below, push.
  *
- * Until a MailerLite URL is set for a tag, signups go to the interim FormSubmit relay
- * (emails each signup to INBOX; FormSubmit needs a one-time activation click from that inbox),
+ * Until a MailerLite URL is set for a tag, signups go to the interim FormSubmit relay, which emails
+ * each signup (with its list tag) to INBOX via a random-string alias so the raw address isn't in the page,
  * and if that request fails, the browser opens a pre-filled email to INBOX as a last resort.
  */
 (function () {
   var MAILERLITE = { challenge: "", waitlist: "" };   // <- paste MailerLite form action URLs here
   var INBOX = "handleslab@mail.grokbot.com";
-  var INTERIM = "https://formsubmit.co/ajax/" + INBOX;
+  var INTERIM = "https://formsubmit.co/ajax/e5c2ff303dec10e26ab91f646320f41d"; // FormSubmit alias for INBOX (activated 2026-10-23)
   var COPY = {
     challenge: { ok: "You're in. Day 1 is ready now: grab a ball.", subject: "New Handles Lab challenge signup" },
     waitlist: { ok: "You're on the app waitlist. We'll email you when it opens.", subject: "New Handles Lab app waitlist signup" }
@@ -40,7 +40,8 @@
       } else {
         req = fetch(INTERIM, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({ email: email, name: name, list: tag, page: location.pathname, _subject: COPY[tag].subject, _template: "table", _captcha: "false" }) })
-          .then(function (r) { if (!r.ok) throw new Error(r.status); return r; });
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .then(function (j) { if (!j || String(j.success) !== "true") throw new Error((j && j.message) || "failed"); return j; });
       }
       req.then(function () { note.textContent = COPY[tag].ok; f.reset(); })
          .catch(function () { note.textContent = "Couldn't reach our sign-up service, so we're opening an email instead. Just hit send."; mailto(tag, email, name); })
