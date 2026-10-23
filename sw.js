@@ -1,7 +1,7 @@
 /* Handles Lab service worker. Pages: network-first (offline falls back to the last copy).
  * CSS/JS/fonts/images: stale-while-revalidate. Loop clips (.mp4): NOT precached; each clip is cached
  * the first time it is viewed, then served from cache (with Range support for iOS Safari). */
-const V = "hl-v1", PAGES = "hl-pages-v1", CLIPS = "hl-clips-v1";
+const V = "hl-v2", PAGES = "hl-pages-v1", CLIPS = "hl-clips-v1";
 self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(V).then(c => c.addAll(["/", "/assets/site.css", "/assets/progress.js", "/assets/signup.js"]))); });
 self.addEventListener("activate", e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => ![V, PAGES, CLIPS].includes(k)).map(k => caches.delete(k)))).then(() => self.clients.claim())));
 async function clip(req) {

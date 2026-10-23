@@ -1,7 +1,7 @@
 /* Handles Lab app service worker, scope /app-preview/.
  * Precache: app shell + data + art + ball-path diagrams. Loop clips (.mp4) are NOT precached:
  * each is cached the first time it's viewed (Range-aware for iOS). Bump V to ship a new shell. */
-const V = "hlapp-shell-v1", CLIPS = "hlapp-clips-v1";
+const V = "hlapp-shell-v2", CLIPS = "hlapp-clips-v1";
 const PATHS = ["behind","chain","combo","control","cross","double","fig8","fig8drib","gauntlet","halfspin","hang","hesi","inout","jumpstop","kill","ladder","pace","pivot","pound","pushpull","retreat","ricochet","skip","slaps","snatch","speed","spin","stance","stutter","thru","vfront","vside","wrap"];
 const SHELL = ["/app-preview/", "/app-preview/app.css", "/app-preview/app.js", "/app-preview/data.js", "/app-preview/manifest.webmanifest",
   "/assets/signup.js", "/assets/fonts/luckiest-guy-400.woff2", "/assets/fonts/anton-latin-400.woff2",
