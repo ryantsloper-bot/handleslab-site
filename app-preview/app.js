@@ -198,7 +198,7 @@
     var tone = ath.tone, name = ath.name, o = document.createElement("div");
     o.className = "onb"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-labelledby", "onb-h");
     document.body.appendChild(o); document.body.style.overflow = "hidden"; setInert(true);
-    function finish(t, n) { saveAth(t, n); o.remove(); document.body.style.overflow = ""; setInert(false); show("today"); }
+    function finish(t, n) { saveAth(t, n); paintMe(); o.remove(); document.body.style.overflow = ""; setInert(false); show("today"); }
     function step1() {
       o.innerHTML = '<div class="onb-in"><div class="onb-top"><span class="kick">Step 1 of 2</span><button type="button" class="linkbtn skip">Skip</button></div>' +
         '<h1 class="disp" id="onb-h" tabindex="-1">Pick your athlete</h1><p class="mute small onb-sub">Choose a skin tone. Same faceless look, same orange and black kit.</p>' +
