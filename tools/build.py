@@ -354,7 +354,7 @@ Join the waitlist to hear when it opens. Founding price: <b style="color:#fff">$
 DAY1_IMGS = """<figure class="shots" style="margin:0 0 22px" aria-label="Day 1 lesson cards">
 <div><picture><source srcset="/assets/img/day1-stance.webp" type="image/webp"><img src="/assets/img/day1-stance.jpg" width="540" height="960" alt="Athletic stance: feet wide, sit like a chair"></picture></div>
 <div><picture><source srcset="/assets/img/day1-pound-right.webp" type="image/webp"><img src="/assets/img/day1-pound-right.jpg" width="540" height="960" loading="lazy" alt="Pound dribble, right hand, knee high"></picture></div>
-<div><picture><source srcset="/assets/img/day1-pound-left.webp" type="image/webp"><img src="/assets/img/day1-pound-left.jpg" width="540" height="960" loading="lazy" alt="Pound dribble, left hand, then down to ankle high"></picture></div></figure>"""
+<div><picture><source srcset="/assets/img/day1-pound-left.webp" type="image/webp"><img src="/assets/img/day1-pound-left.jpg" width="540" height="960" loading="lazy" alt="Pound dribble, left hand, then down low"></picture></div></figure>"""
 
 def move_card(r, d):
     pre = []
