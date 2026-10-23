@@ -1,8 +1,9 @@
 """Animated step diagrams: a premium stand-in for a step that has no loop clip.
 
 Top-down view (front of the player = up, so L is on the left), 720x900 (same 4:5 frame as the clips).
-Hands are marked L/R, numbered markers 1-2-3 give the order, and the ball runs the path in a smooth loop:
-one slow lap, then one at game speed (badge switches SLOW -> GAME SPEED). The CSV cue line sits on the card.
+Plain shoes; hands carry 'L hand' / 'R hand' chips, numbered markers 1-2-3 give the order, and the ball runs the path in a smooth loop:
+one slow lap, then one at game speed (badge switches SLOW -> GAME SPEED). A white arrow rides just ahead of the ball
+and a see-through ghost ball marks the next spot, so the direction is obvious at phone size. Cues sit under the card (CSV, word for word).
 Pure inline SVG + SMIL: no requests, so it works offline in the PWA. Pages pause it for prefers-reduced-motion
 (svg.pauseAnimations()), which leaves a complete still: path, numbers, hands and ball at the start.
 
@@ -26,78 +27,117 @@ def wrap(txt, n=34):
         else: line = (line + " " + w).strip()
     return out + [line]
 
+H_PRETZEL = [("L", 232, 580, "a", "down"), ("R", 360, 462, "a", "upright"), ("R", 488, 580, "b", "down"), ("L", 360, 462, "b", "upleft")]
+H_RICO = [("L", 312, 250, "a", "left"), ("R", 408, 250, "a", "right"), ("L", 312, 640, "b", "left"), ("R", 408, 640, "b", "right")]
 SPECS = {
  # Day 5 pretzel (A08)
- ("A08", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None), ("R", 570, 500, None)],
-                  marks=[(1, 215, 362), (2, 300, 612), (3, 505, 362)]),
- ("A08", 2): dict(path=P8, tag="SWAP HANDS", hands=[("L", 232, 580, "a"), ("R", 360, 470, "a"), ("R", 488, 580, "b"), ("L", 360, 470, "b")],
-                  marks=[(1, 190, 610), (2, 360, 625), (3, 530, 610)]),
- ("A08", 3): dict(path=P8, tag="FASTER", slow=3.2, fast=1.4, hands=[("L", 232, 580, "a"), ("R", 360, 470, "a"), ("R", 488, 580, "b"), ("L", 360, 470, "b")],
-                  marks=[(1, 190, 610), (2, 360, 625), (3, 530, 610)]),
+ ("A08", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None, "down"), ("R", 570, 500, None, "down")],
+                  marks=[(1, 215, 352), (2, 300, 612), (3, 505, 352)]),
+ ("A08", 2): dict(path=P8, tag="SWAP HANDS", hands=H_PRETZEL, marks=[(1, 175, 455), (2, 360, 625), (3, 545, 455)]),
+ ("A08", 3): dict(path=P8, tag="FASTER", slow=3.2, fast=1.4, hands=H_PRETZEL, marks=[(1, 175, 455), (2, 360, 625), (3, 545, 455)]),
  ("A08", 4): dict(path=W8, tag="PRETZEL → DRIBBLE", bounces=[(150, 500), (360, 500), (570, 500)],
-                  hands=[("L", 172, 440, None), ("R", 548, 440, None)], marks=[(1, 360, 560), (2, 112, 590), (3, 608, 590)]),
+                  hands=[("L", 172, 432, None, "up"), ("R", 548, 432, None, "up")], marks=[(1, 360, 600), (2, 105, 600), (3, 615, 600)]),
  # Day 9 ricochet (A09) steps without a clip, figure-8 dribble (A15) step 1
- ("A09", 2): dict(path=RICO, tag="CATCH BEHIND", bounces=[(360, 500)], hands=[("L", 312, 250, "a"), ("R", 408, 250, "a"), ("L", 312, 640, "b"), ("R", 408, 640, "b")],
-                  marks=[(1, 225, 250), (2, 215, 560), (3, 235, 640)], split=.5),
- ("A09", 3): dict(path=RICO, tag="10 IN A ROW", bounces=[(360, 500)], hands=[("L", 312, 250, "a"), ("R", 408, 250, "a"), ("L", 312, 640, "b"), ("R", 408, 640, "b")],
-                  marks=[(1, 225, 250), (2, 215, 560), (3, 235, 640)], split=.5, slow=3.0, fast=1.6),
- ("A09", 4): dict(path=BULLET, tag="FROM OVERHEAD", bounces=[(360, 500)], hands=[("L", 296, 398, "a"), ("R", 424, 398, "a"), ("L", 312, 640, "b"), ("R", 408, 640, "b")],
-                  marks=[(1, 230, 360), (2, 215, 560), (3, 235, 640)], split=.5),
- ("A15", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None), ("R", 570, 500, None)],
-                  marks=[(1, 215, 362), (2, 300, 612), (3, 505, 362)]),
+ ("A09", 2): dict(path=RICO, tag="CATCH BEHIND", bounces=[(360, 500)], hands=H_RICO, marks=[(1, 360, 178), (2, 205, 560), (3, 360, 715)], split=.5),
+ ("A09", 3): dict(path=RICO, tag="10 IN A ROW", bounces=[(360, 500)], hands=H_RICO, marks=[(1, 360, 178), (2, 205, 560), (3, 360, 715)], split=.5, slow=3.0, fast=1.6),
+ ("A09", 4): dict(path=BULLET, tag="FROM OVERHEAD", bounces=[(360, 500)],
+                  hands=[("L", 296, 398, "a", "left"), ("R", 424, 398, "a", "right"), ("L", 312, 640, "b", "left"), ("R", 408, 640, "b", "right")],
+                  marks=[(1, 360, 322), (2, 205, 560), (3, 360, 715)], split=.5),
+ ("A15", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None, "down"), ("R", 570, 500, None, "down")],
+                  marks=[(1, 215, 352), (2, 300, 612), (3, 505, 352)]),
 }
 # Turned on only where the CEO asked: all Day 5 pretzel steps + the Day 9 steps with no clip.
 ENABLED = {("A08", 1), ("A08", 2), ("A08", 3), ("A08", 4), ("A09", 2), ("A09", 3), ("A09", 4), ("A15", 1)}
 
-def ball(r=30):
-    return (f'<g><circle r="{r}" fill="{OR}" stroke="{INK}" stroke-width="6"/>'
+def ball(r=30, ghost=False):
+    op = ' opacity=".38"' if ghost else ""
+    return (f'<g{op}><circle r="{r}" fill="{OR}" stroke="{INK}" stroke-width="6"{" stroke-dasharray=\"8 6\"" if ghost else ""}/>'
             f'<path d="M{-r} 0H{r}M0 {-r}V{r}M{-r*.7:.0f} {-r*.7:.0f}Q0 0 {-r*.7:.0f} {r*.7:.0f}M{r*.7:.0f} {-r*.7:.0f}Q0 0 {r*.7:.0f} {r*.7:.0f}" '
-            f'stroke="{INK}" stroke-width="3.5" fill="none"/><circle cx="{-r*.35:.0f}" cy="{-r*.4:.0f}" r="{r*.22:.0f}" fill="#fff" opacity=".45"/></g>')
+            f'stroke="{INK}" stroke-width="3.5" fill="none"/>' + ("" if ghost else f'<circle cx="{-r*.35:.0f}" cy="{-r*.4:.0f}" r="{r*.22:.0f}" fill="#fff" opacity=".45"/>') + '</g>')
+
+CHIP_W, CHIP_H = 132, 50
+def chip_box(x, y, side):
+    """Top-left corner of the 'L hand' / 'R hand' chip placed beside a hand at (x, y)."""
+    gap = 32
+    return {"left": (x - gap - CHIP_W, y - CHIP_H / 2), "right": (x + gap, y - CHIP_H / 2),
+            "up": (x - CHIP_W / 2, y - gap - CHIP_H), "down": (x - CHIP_W / 2, y + gap),
+            "upright": (x + 18, y - gap - CHIP_H), "upleft": (x - 18 - CHIP_W, y - gap - CHIP_H)}[side]
+
+def _check(spec, key):
+    for (n, x, y) in spec["marks"]:   # numbered markers must never sit on the feet
+        for (fx, fy) in FEET.values():
+            if ((x - fx) / (36 + 34)) ** 2 + ((y - fy) / (62 + 34)) ** 2 < 1:
+                raise ValueError(f"stepdiagram {key}: marker {n} overlaps a foot")
+
+def _bbox(spec):
+    import re
+    nums = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", spec["path"])]
+    xs, ys = nums[0::2], nums[1::2]
+    for (_, x, y, _p, side) in spec["hands"]:
+        xs += [x - 30, x + 30]; ys += [y - 30, y + 30]      # chips are kept on-card by the fit loop in diagram()
+    for (_, x, y) in spec["marks"]: xs += [x - 32, x + 32]; ys += [y - 32, y + 32]
+    for (x, y) in spec.get("bounces", []): xs += [x - 62, x + 62]; ys += [y - 40, y + 30]
+    for (x, y) in FEET.values(): xs += [x - 40, x + 40]; ys += [y - 66, y + 66]
+    return min(xs), min(ys), max(xs), max(ys)
 
 def diagram(mid, step, cues, uid, step_text=""):
     if (mid, step) not in ENABLED or (mid, step) not in SPECS: return None
-    s = SPECS[(mid, step)]; slow, fast = s.get("slow", 4.6), s.get("fast", 2.2); T = slow + fast; k = slow / T
-    sp = s.get("split", .5)   # where hand set "a" hands over to "b" within a lap
+    s = SPECS[(mid, step)]; _check(s, (mid, step))
+    slow, fast = s.get("slow", 4.6), s.get("fast", 2.2); T = slow + fast; k = slow / T
+    sp = s.get("split", .5)
+    # fit: the drawing spans ~70% of the card width, centred in the space under the top chips
+    x0, y0, x1, y1 = _bbox(s); sc = min(0.70 * 720 / (x1 - x0), 760 / (y1 - y0), 1.8)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    def fits(k):
+        for (_, x, y, _p, side) in s["hands"]:
+            bx, by = chip_box(x, y, side)
+            for (px, py) in ((bx, by), (bx + CHIP_W, by + CHIP_H)):
+                X, Y = 360 + (px - cx) * k, 508 + (py - cy) * k
+                if not (12 <= X <= 708 and 160 <= Y <= 888): return False
+        return True
+    while sc > 0.6 and not fits(sc): sc -= 0.02
     o = []
     o.append(f'<svg class="dg" viewBox="0 0 720 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated diagram, top-down view: {E(step_text)}. Cues: {E(cues)}">')
     o.append(f'<defs><pattern id="ht{uid}" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="3.2" fill="#7a2c00" opacity=".16"/></pattern>'
-             f'<radialGradient id="vg{uid}" cx="50%" cy="45%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".22"/></radialGradient></defs>')
+             f'<radialGradient id="vg{uid}" cx="50%" cy="50%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".22"/></radialGradient></defs>')
     o.append(f'<rect width="720" height="900" fill="{OR}"/><rect width="720" height="900" fill="url(#ht{uid})"/>')
-    # court lines (cream, comic)
-    o.append(f'<g fill="none" stroke="{CREAM}" stroke-width="7" opacity=".5"><circle cx="360" cy="500" r="250"/><path d="M0 170H720M60 0V900M660 0V900"/></g>')
+    o.append(f'<g fill="none" stroke="{CREAM}" stroke-width="7" opacity=".45"><circle cx="360" cy="500" r="270"/><path d="M0 120H720M40 0V900M680 0V900"/></g>')
     o.append(f'<rect width="720" height="900" fill="url(#vg{uid})"/>')
-    # front marker
-    o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}" text-anchor="middle"><path d="M360 118l18 26h-36z" fill="{INK}"/><text x="360" y="105" letter-spacing="3">FRONT</text></g>')
-    o.append('<g transform="translate(360 478) scale(1.22) translate(-360 -500)">')   # figure layer, scaled to fill the card
-    # ball path: ink outline + white core
-    o.append(f'<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="{s["path"]}" stroke="{INK}" stroke-width="22"/>'
-             f'<path d="{s["path"]}" stroke="{WHITE}" stroke-width="10" stroke-dasharray="26 16"/></g>')
-    # body (top-down): sneakers + shoulders + faceless head with headband
-    for side, (x, y) in FEET.items():
+    o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="28" fill="{INK}" text-anchor="middle"><path d="M360 128l16 22h-32z"/><text x="360" y="118" letter-spacing="3">FRONT</text></g>')
+    o.append(f'<g transform="translate(360 {508}) scale({sc:.3f}) translate({-cx:.1f} {-cy:.1f})">')
+    o.append(f'<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="{s["path"]}" stroke="{INK}" stroke-width="20" opacity=".9"/>'
+             f'<path d="{s["path"]}" stroke="{WHITE}" stroke-width="8" stroke-dasharray="22 16" opacity=".85"/></g>')
+    for (x, y) in FEET.values():   # plain sneakers, no letters
         o.append(f'<g transform="translate({x} {y})"><ellipse rx="36" ry="62" fill="{INK}" stroke="{WHITE}" stroke-width="5"/>'
-                 f'<ellipse cy="-36" rx="28" ry="20" fill="{OR}"/><text y="26" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{WHITE}">{side}</text></g>')
+                 f'<ellipse cy="-36" rx="28" ry="20" fill="{OR}"/><path d="M-14 0h28M-14 14h28" stroke="{WHITE}" stroke-width="4" opacity=".6"/></g>')
     hx, hy = HEAD
-    o.append(f'<ellipse cx="{hx}" cy="{hy}" rx="150" ry="40" fill="{INK}" opacity=".6" stroke="{WHITE}" stroke-width="5"/>'
+    o.append(f'<ellipse cx="{hx}" cy="{hy}" rx="150" ry="40" fill="{INK}" opacity=".55" stroke="{WHITE}" stroke-width="5"/>'
              f'<circle cx="{hx}" cy="{hy}" r="42" fill="{WHITE}" stroke="{INK}" stroke-width="6"/><circle cx="{hx}" cy="{hy}" r="30" fill="none" stroke="{OR}" stroke-width="12"/>')
     for (x, y) in s.get("bounces", []):
         o.append(f'<g transform="translate({x} {y})" stroke="{WHITE}" stroke-width="6" stroke-linecap="round"><path d="M-44 -30l-12 -8M44 -30l12 -8M-48 18l-14 6M48 18l14 6"/>'
                  f'<circle r="20" fill="none" stroke="{INK}" stroke-width="5" stroke-dasharray="7 6"/></g>')
-    # numbered order markers
     for (n, x, y) in s["marks"]:
         o.append(f'<g transform="translate({x} {y})"><circle r="30" fill="{INK}" stroke="{WHITE}" stroke-width="5"/>'
                  f'<text y="13" text-anchor="middle" font-family="Lucky,Impact,sans-serif" font-size="38" fill="{WHITE}">{n}</text></g>')
-    # hands (L/R); phase a = first part of each lap, b = the rest (synced to the ball's two laps)
     a_vals = f"0;{sp*k:.4f};{k:.4f};{k+sp*(1-k):.4f};1"
-    for (lab, x, y, ph) in s["hands"]:
+    for (lab, x, y, ph, side) in s["hands"]:
         anim = ""
         if ph:
             v = "1;0;1;0;1" if ph == "a" else "0;1;0;1;0"
             anim = f'<animate attributeName="opacity" values="{v}" keyTimes="{a_vals}" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/>'
-        o.append(f'<g transform="translate({x} {y})" opacity="{0 if ph == "b" else 1}">{anim}<circle r="34" fill="{WHITE}" stroke="{INK}" stroke-width="6"/>'
-                 f'<text y="15" text-anchor="middle" font-family="Lucky,Impact,sans-serif" font-size="40" fill="{INK}">{lab}</text></g>')
-    # the ball: one slow lap, one game-speed lap, smooth (spline) easing
-    d2 = s["path"] + " " + s["path"]
-    o.append(f'<g>{ball()}<animateMotion dur="{T:.2f}s" repeatCount="indefinite" path="{d2}" keyPoints="0;0.5;1" keyTimes="0;{k:.4f};1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/></g>')
+        bx, by = chip_box(x, y, side)
+        o.append(f'<g opacity="{0 if ph == "b" else 1}">{anim}'
+                 f'<circle cx="{x}" cy="{y}" r="26" fill="{WHITE}" stroke="{INK}" stroke-width="6"/>'
+                 f'<rect x="{bx:.0f}" y="{by:.0f}" width="{CHIP_W}" height="{CHIP_H}" rx="25" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>'
+                 f'<text x="{bx + CHIP_W / 2:.0f}" y="{by + 36:.0f}" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}">{lab} hand</text></g>')
+    # motion: the path is tripled so the arrow and ghost ball can run a fixed distance ahead of the ball
+    d3 = " ".join([s["path"]] * 3); kt = f"0;{k:.4f};1"; spl = 'calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"'
+    def motion(lead, rotate=False):
+        kp = f"{lead:.4f};{1/3 + lead:.4f};{2/3 + lead:.4f}"
+        return f'<animateMotion dur="{T:.2f}s" repeatCount="indefinite" path="{d3}" keyPoints="{kp}" keyTimes="{kt}" {spl}{" rotate=\"auto\"" if rotate else ""}/>'
+    o.append(f'<g>{ball(30, ghost=True)}{motion(0.13 / 3)}</g>')                 # ghost ball: the next spot
+    o.append(f'<g><path d="M-22 -34L38 0L-22 34L-8 0Z" fill="{WHITE}" stroke="{INK}" stroke-width="6" stroke-linejoin="round"/>{motion(0.065 / 3, True)}</g>')  # direction arrow
+    o.append(f'<g>{ball()}{motion(0)}</g>')
     o.append("</g>")
     # top chips: tag (starts at x=168, clear of the app's step-number badge) + speed (right)
     o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="30" letter-spacing="2">'
@@ -105,14 +145,7 @@ def diagram(mid, step, cues, uid, step_text=""):
              f'<g><rect x="452" y="24" width="244" height="54" rx="27" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>'
              f'<text x="574" y="62" text-anchor="middle" fill="{INK}">🐢 SLOW FIRST<animate attributeName="opacity" values="1;0;1" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>'
              f'<text x="574" y="62" text-anchor="middle" fill="{OR}" opacity="0">🐇 GAME SPEED<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text></g></g>')
-    # cue card (CSV cues, word for word)
-    lines = wrap(cues, 34)[:3]; h = 64 + 40 * len(lines)
-    y0 = 880 - h
-    o.append(f'<g><rect x="24" y="{y0}" width="672" height="{h}" rx="24" fill="{CREAM}" stroke="{INK}" stroke-width="6"/>'
-             f'<text x="52" y="{y0 + 48}" font-family="Lucky,Impact,sans-serif" font-size="32" fill="{OR}">CUES</text>')
-    for i, ln in enumerate(lines):
-        o.append(f'<text x="52" y="{y0 + 92 + 40 * i}" font-family="ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="32" font-weight="800" fill="{INK}">{E(ln)}</text>')
-    o.append("</g></svg>")
+    o.append("</svg>")
     return "".join(o)
 
 if __name__ == "__main__":   # preview: python3 tools/stepdiagram.py out.html
