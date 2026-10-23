@@ -175,7 +175,7 @@ def foot():
     return f"""<footer><div class="wrap">
 <div><a class="brand" href="/"><img src="/assets/img/icon-180.png" alt="" width="34" height="34">Handles Lab</a>
 <p>The free 30-day at-home dribbling challenge.<br>Not affiliated with any league or team.</p></div>
-<nav aria-label="Social"><a href="https://www.tiktok.com/@thehandleslab">TikTok</a><a href="https://x.com/handleslab">X</a><a href="https://www.youtube.com/@HandlesLab">YouTube</a></nav>
+<nav aria-label="Social"><a href="https://www.tiktok.com/@thehandleslab">TikTok</a><a href="https://www.instagram.com/handles_lab/">Instagram</a><a href="https://x.com/handleslab">X</a><a href="https://www.youtube.com/@HandlesLab">YouTube</a></nav>
 <p>© {datetime.date.today().year} Handles Lab · Practice safely: clear space, supervise young kids.</p>
 </div></footer>
 <script>window.HL={{tiers:{tiers},order:{json.dumps(TIERS)}}};</script>
