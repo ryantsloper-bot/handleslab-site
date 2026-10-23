@@ -205,7 +205,7 @@ def landing():
 <p><a class="btn" href="/day/1/" style="margin-top:14px">Try Day 1 together</a></p></div>
 <ul class="tips">
 <li><b>Right-size the ball.</b> {kid('A02')}.</li>
-<li><b>Make it a game.</b> Day 1 stance: "{kid('A01')}." Day 12 hesitation: {kid('B06')}.</li>
+<li><b>Make it a game.</b> Day 1 stance: {kid('A01')}. Day 12 hesitation: {kid('B06')}.</li>
 <li><b>Quiet indoor option.</b> Day 2 seated dribbling: {kid('A20')}.</li>
 <li><b>You're the defender.</b> Day 10 control dribble: {kid('B02')}.</li>
 <li><b>Slow is fine.</b> Harder days tell kids to stop at Step 2 or 3, or walk it through. Going slower beats getting sloppy.</li>
