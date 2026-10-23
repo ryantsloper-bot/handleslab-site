@@ -293,33 +293,34 @@
   function lastDone() { for (var d = 30; d >= 1; d--) if (done[d]) return d; return 0; }
   function loadImg(src) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
   function drawCard() {
-    var W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    // 9:16 Story card. Story UI safe zones: nothing in the top 250px or bottom 340px (y 250-1580 only).
+    var W = 1080, H = 1920, TOP = 250, BOT = H - 340, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     var x = cv.getContext("2d"), s = streak(), c = count(), ld = lastDone(), D = ld ? day(ld) : null;
     var fonts = document.fonts ? Promise.all([document.fonts.load('120px "Lucky"'), document.fonts.load('40px "Anton"')]).catch(function () {}) : Promise.resolve();
     return Promise.all([fonts, loadImg("/assets/img/athlete.jpg")]).then(function (r) {
       var img = r[1];
       x.fillStyle = "#F77914"; x.fillRect(0, 0, W, H);
-      if (img) x.drawImage(img, 0, 0, img.width, img.height * .74, 0, 0, W, W * .74);
-      var g = x.createLinearGradient(0, 520, 0, 820); g.addColorStop(0, "rgba(14,14,16,0)"); g.addColorStop(1, "rgba(14,14,16,1)");
-      x.fillStyle = g; x.fillRect(0, 520, W, 300); x.fillStyle = "#0e0e10"; x.fillRect(0, 818, W, H - 818);
-      // brand tag top-left
-      x.fillStyle = "#0e0e10"; rr(x, 48, 48, 330, 70, 35); x.fill();
-      x.fillStyle = "#fff"; x.font = '400 36px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.fillText("HANDLES LAB", 82, 84);
+      if (img) x.drawImage(img, 0, 0, img.width, img.height * .74, 0, TOP, W, W * .74);   // art 250-1049
+      var g = x.createLinearGradient(0, 850, 0, 1100); g.addColorStop(0, "rgba(14,14,16,0)"); g.addColorStop(1, "rgba(14,14,16,1)");
+      x.fillStyle = g; x.fillRect(0, 850, W, 252); x.fillStyle = "#0e0e10"; x.fillRect(0, 1100, W, H - 1100);
+      // brand tag (inside safe zone)
+      x.fillStyle = "#0e0e10"; rr(x, 48, TOP + 30, 330, 70, 35); x.fill();
+      x.fillStyle = "#fff"; x.font = '400 36px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.textAlign = "left"; x.fillText("HANDLES LAB", 82, TOP + 66);
       // big streak
       x.textAlign = "center"; x.textBaseline = "alphabetic";
-      x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 830);
-      x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 830);
-      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 930);
+      x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 1170);
+      x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 1170);
+      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 1265);
       x.font = '400 40px "Anton", Impact, sans-serif'; x.fillStyle = "#f6f2ec";
-      x.fillText(D ? ("DAY " + ld + " OF 30 · " + D.tierLabel.toUpperCase()) : "30-DAY DRIBBLING CHALLENGE", W / 2, 1000);
+      x.fillText(D ? ("DAY " + ld + " OF 30 · " + D.tierLabel.toUpperCase()) : "30-DAY DRIBBLING CHALLENGE", W / 2, 1330);
       // 30-day strip
       var cw = 26, gap = 6, x0 = (W - (30 * cw + 29 * gap)) / 2;
-      for (var i = 1; i <= 30; i++) { x.fillStyle = done[i] ? "#F77914" : "#2c2c33"; rr(x, x0 + (i - 1) * (cw + gap), 1040, cw, 54, 8); x.fill(); }
+      for (var i = 1; i <= 30; i++) { x.fillStyle = done[i] ? "#F77914" : "#2c2c33"; rr(x, x0 + (i - 1) * (cw + gap), 1365, cw, 50, 8); x.fill(); }
       x.font = '700 34px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'; x.fillStyle = "#b6b0a8";
-      x.fillText(c + "/30 days done · free 30-day dribbling challenge", W / 2, 1150);
-      // footer strip
-      x.fillStyle = "#F77914"; x.fillRect(0, H - 130, W, 130);
-      x.fillStyle = "#0e0e10"; x.font = '400 50px "Anton", Impact, sans-serif'; x.fillText("handleslab.com · @thehandleslab", W / 2, H - 48);
+      x.fillText(c + "/30 days done · free 30-day dribbling challenge", W / 2, 1466);
+      // site + handle pill, bottom edge at the safe line
+      x.fillStyle = "#F77914"; rr(x, 90, 1496, W - 180, 84, 42); x.fill();
+      x.fillStyle = "#0e0e10"; x.font = '400 46px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.fillText("handleslab.com · @thehandleslab", W / 2, BOT - 42);
       return cv;
     });
   }

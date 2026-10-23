@@ -160,5 +160,5 @@ details.kid p{margin:6px 0 0}
 .sharesheet[hidden]{display:none}
 .sharesheet .ssheet{position:relative;width:100%;max-width:520px;max-height:100%;overflow-y:auto;background:var(--ink2);border-radius:24px 24px 0 0;padding:18px 18px calc(18px + var(--safe-b));display:flex;flex-direction:column;gap:10px;text-align:center}
 .sharesheet .x{position:absolute;top:10px;right:10px;width:44px;height:44px;border-radius:50%;background:var(--ink3);font-size:18px}
-.sharesheet .cardimg{display:grid;place-items:center;min-height:200px}.sharesheet .cardimg img{width:min(100%,46vh*.8);border-radius:14px;box-shadow:0 8px 0 rgba(0,0,0,.4)}
+.sharesheet .cardimg{display:grid;place-items:center;min-height:200px}.sharesheet .cardimg img{height:min(54vh,600px);width:auto;max-width:100%;border-radius:14px;box-shadow:0 8px 0 rgba(0,0,0,.4)}
 .big.share{background:var(--or);color:var(--ink)}.celebrate .big.share{background:var(--ink);color:var(--or)}
