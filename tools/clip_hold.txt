@@ -3,4 +3,3 @@
 #   python3 tools/sync_clips.py --only day-NN/<MOVEID>/level-N   (copies just that clip + a versioned poster level-N.<md5>.jpg)
 #   python3 tools/build.py && python3 tools/check_prereqs.py      (pages and app pick up the clip with ?v=<md5>)
 # Don't hand-copy a bare level-N.jpg poster: build.py rejects bare posters.
-day-01/A05/level-3   # old white-athlete clip; Option A re-do pending (Shorts Producer, 2026-10-23)
