@@ -461,7 +461,7 @@ def day_page(d):
 <p>The Handles Lab app picks up where the challenge ends, with more moves and lessons and plans for each player. Join the waitlist: the founding price is $29.99 for the first year.</p></div>
 <div>{signup_form("waitlist", "Join the app waitlist")}</div></div>"""
     else:
-        tail = f"""<div class="signup" style="margin:10px 0 18px"><div><h2 style="font-size:clamp(28px,4vw,40px)">Get each day in your inbox</h2><p>One short email per day. Optional: every day stays open here.</p></div>
+        tail = f"""<div class="signup" style="margin:10px 0 18px"><div><h2 style="font-size:clamp(28px,4vw,40px)">Get each day in your inbox</h2><p>One short email per day. Get each new day sent to your inbox.</p></div>
 <div>{signup_form("challenge", "Email me each day")}</div></div>
 <p style="text-align:center;color:var(--mute);font-size:15px;margin:0 0 40px">After Day 30: the Handles Lab app is coming. <a href="/#app">Join the waitlist</a> ($29.99 founding price for the first year).</p>"""
     body = f"""<main id="main">

@@ -7,7 +7,6 @@
 #   3. python3 tools/build.py && python3 tools/check_prereqs.py           (page + app open with ?v=<md5> clip URLs)
 # A day with no new clips yet (diagrams only, no old media) unlocks with steps 1 and 3 alone.
 # sync_clips.py skips locked days, so a full re-sync can't bring old clips back.
-5 Unlocks tomorrow
 7 Unlocks soon
 8 Unlocks soon
 9 Unlocks soon
