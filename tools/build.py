@@ -13,7 +13,7 @@ SITE = "https://handleslab.com"
 E = lambda s: html.escape(str(s), quote=True)
 
 TITLE = {1: "Stance + pound dribble", 2: "Pound ladder: high, middle, low", 3: "V-dribbles, front and side",
- 4: "Ball wraps + figure-8 wrap", 5: "The pretzel", 6: "Stationary crossover + kill dribble",
+ 4: "Ball wraps + figure-8 wrap", 5: "Stationary in-and-out", 6: "Stationary crossover + kill dribble",
  7: "Between the legs (stationary)", 8: "Behind the back (stationary)", 9: "Figure-8 dribble + ricochet",
  10: "On the move: speed, control, jump stop", 11: "Crossover on the move", 12: "Hesitation / rocker",
  13: "In-and-out", 14: "Change of pace + stutter step", 15: "First combos: hesi-cross, stutter-cross",
@@ -22,7 +22,7 @@ TITLE = {1: "Stance + pound dribble", 2: "Pound ladder: high, middle, low", 3: "
  22: "Hang dribble", 23: "Retreat dribble + snatch back", 24: "Front pivot + spin move",
  25: "Half spin + cross into spin", 26: "Shake and bake", 27: "Push-pull crossover",
  28: "Combo chains: cross, thru, wrap", 29: "Sequence + snatch-back crossover", 30: "Final gauntlet: film it, compare to Day 1"}
-SHORT = {1: "Pound", 2: "Ladder", 3: "V-dribble", 4: "Wraps", 5: "Pretzel", 6: "Cross", 7: "Thru", 8: "Behind",
+SHORT = {1: "Pound", 2: "Ladder", 3: "V-dribble", 4: "Wraps", 5: "In-out", 6: "Cross", 7: "Thru", 8: "Behind",
  9: "Figure-8", 10: "Move", 11: "Cross", 12: "Hesi", 13: "In-out", 14: "Pace", 15: "Combos", 16: "Skip",
  17: "Thru", 18: "Killer", 19: "Behind", 20: "Double", 21: "Hold", 22: "Hang", 23: "Snatch", 24: "Spin",
  25: "Half spin", 26: "Shake", 27: "Push-pull", 28: "Chains", 29: "Sequence", 30: "Final"}
@@ -53,7 +53,7 @@ for d in days: days[d] = order(days[d])
 
 # Each day's headline move (the 30-day plan's primary move). Loop clips (content/app-clips/day-NN/level-N.mp4,
 # copied into assets/clips/ by tools/sync_clips.py) belong to this move's Step N.
-PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A08", 6: "A12", 7: "A13", 8: "A14", 9: "A15", 10: "B01", 11: "B04",
+PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A21", 6: "A12", 7: "A13", 8: "A14", 9: "A15", 10: "B01", 11: "B04",
  12: "B06", 13: "B05", 14: "B07", 15: "C08", 16: "B09", 17: "B10", 18: "C01", 19: "B11", 20: "B18", 21: "B17", 22: "B14",
  23: "B15", 24: "B12", 25: "B13", 26: "C10", 27: "B16", 28: "C06", 29: "C02", 30: "C13"}
 assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
