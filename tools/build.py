@@ -48,6 +48,26 @@ def order(ms):  # same-day prerequisites first, then easier first, then id
         else: out += left; break
     return out
 for d in days: days[d] = order(days[d])
+
+# ---------- levels (same mapping as the email sequence: hoops-ai/email/build_emails.py) ----------
+TIERS = ["Beginner", "Intermediate", "Advanced", "Elite"]
+TIER_TXT = {"Beginner": "Levels 1-2. Ball control and your first moves on the move: pound, V-dribbles, wraps, crossovers, hesitation, change of pace.",
+            "Intermediate": "Level 3. Between the legs and behind the back on the move, first combos, hang dribble, snatch back, the spin.",
+            "Advanced": "Level 4. Half spin, shake and bake, and the nonstop combo chains that finish the challenge.",
+            "Elite": "Level 5. The push-pull crossover: the hardest single move in the 30 days."}
+def lvl_word(n): return {1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Advanced", 5: "Elite"}[n]
+def day_lvl(d): return max(int(m["difficulty"]) for m in days[d])
+def tier(d): return lvl_word(day_lvl(d))
+def tier_i(d): return TIERS.index(tier(d)) + 1
+def tier_days(t): return [d for d in range(1, 31) if tier(d) == t]
+def ranges(ds):
+    out = []; st = pv = None
+    for d in ds:
+        if st is None: st = pv = d
+        elif d == pv + 1: pv = d
+        else: out.append((st, pv)); st = pv = d
+    if st is not None: out.append((st, pv))
+    return ", ".join(f"{a}" if a == b else f"{a}-{b}" for a, b in out)
 def name(r): return r["move"]
 
 # Name guardrail. data/banned-name-hashes.txt holds SHA-256 hashes (not the names, since this repo is
@@ -107,12 +127,15 @@ def head(title, desc, path, extra=""):
 """
 
 def foot():
+    import json
+    tiers = json.dumps({d: tier(d) for d in range(1, 31)}, separators=(",", ":"))
     return f"""<footer><div class="wrap">
 <div><a class="brand" href="/"><img src="/assets/img/icon-180.png" alt="" width="34" height="34">Handles Lab</a>
 <p>The free 30-day at-home dribbling challenge.<br>Not affiliated with any league or team.</p></div>
 <nav aria-label="Social"><a href="https://www.tiktok.com/@thehandleslab">TikTok</a><a href="https://www.instagram.com/thehandleslab">Instagram</a><a href="https://x.com/handleslab">X</a><a href="https://www.youtube.com/@HandlesLab">YouTube</a></nav>
 <p>© {datetime.date.today().year} Handles Lab · Practice safely: clear space, supervise young kids.</p>
 </div></footer>
+<script>window.HL={{tiers:{tiers},order:{json.dumps(TIERS)}}};</script>
 <script src="/assets/signup.js" defer></script><script src="/assets/progress.js" defer></script>
 </body></html>
 """
@@ -136,20 +159,21 @@ def daymap(cur=None, mini=False):
     li = []
     for d in range(1, 31):
         c = ' class="cur" aria-current="page"' if d == cur else ""
-        li.append(f'<li><a href="/day/{d}/" data-day="{d}" data-ph="{phase(d)}"{c} title="Day {d}: {E(TITLE[d])}">{d}<small>{E(SHORT[d])}</small></a></li>')
+        li.append(f'<li><a href="/day/{d}/" data-day="{d}" data-ph="{tier_i(d)}" data-tier="{tier(d)}"{c} title="Day {d}: {E(TITLE[d])}">{d}<small>{E(SHORT[d])}</small></a></li>')
     return f'<ol class="map{" mini" if mini else ""}" aria-label="30-day progress map">' + "".join(li) + "</ol>"
 
 def legend():
     cols = ["var(--ink2)", "#1d1712", "#24170d", "#2e1806"]
-    return '<div class="legend">' + "".join(f'<span><i style="background:{c}"></i>Days {p[0]}-{p[1]} · {p[2]}</span>' for c, p in zip(cols, PHASES)) + '<span>✓ = done (saved on this device)</span></div>'
+    return '<div class="legend">' + "".join(f'<span><i style="background:{c}"></i>{t}</span>' for c, t in zip(cols, TIERS)) + '<span>✓ done · 🔒 locked · ● today (saved on this device)</span></div>'
 
 def diff(n):
-    n = int(n); return f'<span class="diff" aria-label="Difficulty {n} of 5">' + "".join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(5)) + f' &nbsp;Level {n}/5</span>'
+    n = int(n); return f'<span class="diff" aria-label="Difficulty {n} of 5">' + "".join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(5)) + f' &nbsp;{lvl_word(n)} · Level {n}/5</span>'
 
 # ---------- landing ----------
 def landing():
     a02 = by["A02"]
-    phases = "".join(f'<div class="card phase"><span class="days">Days {a}-{b}</span><h3>{E(n)}</h3><p>{E(t)}</p></div>' for a, b, n, t in PHASES)
+    phases = "".join(f'<div class="card phase"><span class="days">Days {ranges(tier_days(t))}</span><h3>{t}</h3><p>{E(TIER_TXT[t])}</p></div>' for t in TIERS)
+    where = " · ".join(f"Days {a}-{b}: {n.lower()}" for a, b, n, _ in PHASES)
     steps = "".join(f"<li><div><b>Step {i}</b>{E(a02['step'+str(i)])}</div></li>" for i in range(1, 5))
     kid = lambda i: E(by[i]["kid_version"])
     return head("Handles Lab · Free 30-Day Dribbling Challenge",
@@ -178,9 +202,11 @@ def landing():
 
 <section id="days"><div class="wrap">
 <div class="sec-head"><span class="kicker">The plan</span><h2>What the 30 days look like</h2>
-<p>Every move builds on one you already learned, so the order matters. You start standing still and finish chaining five moves at speed.</p></div>
+<p>Four levels: Beginner, Intermediate, Advanced, Elite. Each day's level is its hardest move (Level 1-5). Finish every day of one level to unlock the next. Every page stays open to preview.</p></div>
 <div class="grid g4">{phases}</div>
-<div style="margin-top:36px">{daymap()}{legend()}</div>
+<p style="color:var(--mute);font-size:15px;margin-top:16px">Where you'll train: {E(where)}.</p>
+<div class="statrow" data-stats hidden><span>🔥 Streak: <b data-streak>0</b> day(s)</span><span>✓ <b data-count>0</b>/30 done</span><span data-badges></span><a class="btn sm" data-today-link href="/day/1/">Go to today</a></div>
+<div style="margin-top:20px">{daymap()}{legend()}</div>
 </div></section>
 
 <section id="how"><div class="wrap split">
@@ -259,9 +285,27 @@ def move_card(r, d):
 <ol class="steps">{steps}</ol>
 <div class="cues"><span>Cues</span><span>{E(r['cues'])}</span></div>
 <div class="kid"><span>Kid version</span><span>{E(r['kid_version'])}</span></div>
+<label class="chk"><input type="checkbox" data-chk="{d}-{r['id']}"> <span><b>Self-check:</b> Did you hit 20 clean reps? <small>(at the highest step you reached today)</small></span></label>
 <div class="facts2"><span><b>Gear:</b> {E(r['equipment'])}</span>{f'<span><b>Builds on:</b> ' + ', '.join(pre) + '</span>' if pre else ''}</div>
 {f'<p class="credits">Sources: ' + ' · '.join(src) + '</p>' if src else ''}
 </article>"""
+
+def lockbox(d):
+    t = tier_i(d)
+    if t == 1: return ""
+    need = [x for x in range(1, d) if tier_i(x) < t]
+    prev = TIERS[t - 2]
+    return (f'<div class="lockbox" data-lock data-need="{",".join(map(str, need))}" hidden><p><b>🔒 {tier(d)} is locked.</b> '
+            f'Mark every earlier day done first (the {prev} days and below): <span data-missing></span>.</p>'
+            f'<p><a href="#main" data-preview>Preview this day anyway</a> · <a data-next-open href="/day/1/">Go to your next open day</a></p></div>')
+
+def teaser(d):
+    if d == 30: return '<div class="teaser"><span class="kicker">Tomorrow</span><p><b>Run the Day 30 gauntlet again and compare it with your Day 1 video.</b></p></div>'
+    nxt = days[d + 1]
+    main = max(nxt, key=lambda m: int(m["difficulty"]))  # first hardest move = the day's headline move
+    return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · {tier(d+1)}</span>'
+            f'<p><b>{E(main["move"])}</b>: {E(main["how_it_works"].split(". ")[0].rstrip("."))}.</p>'
+            f'<a href="/day/{d+1}/">Peek at Day {d+1} →</a></div>')
 
 def day_page(d):
     ms = days[d]; ph = PHASES[phase(d) - 1]
@@ -285,16 +329,20 @@ def day_page(d):
     body = f"""<main id="main">
 <section class="dayhero" style="border:0"><div class="wrap">
 <p class="crumb"><a href="/">Handles Lab</a> / <a href="/#days">30-day challenge</a> / Day {d}</p>
-<div class="daynum">Day {d} of 30 · {E(ph[2])}</div>
+<div class="daynum">Day {d} of 30 · {tier(d)} · {E(ph[2])}</div>
 <h1>{E(TITLE[d])}</h1>
-<ul class="meta"><li>{len(ms)} move{"s" if len(ms) > 1 else ""}</li><li>Up to level {lvl}/5</li><li>Gear: {E(gear)}</li></ul>
+<ul class="meta"><li>{len(ms)} move{"s" if len(ms) > 1 else ""}</li><li>{tier(d)} · up to Level {lvl}/5</li><li>Gear: {E(gear)}</li></ul>
 <div style="margin-top:26px">{daymap(d, mini=True)}</div>
+{lockbox(d)}
 </div></section>
 <section class="daybody"><div class="wrap" style="max-width:860px">
 {warm}
 {DAY1_IMGS if d == 1 else ''}
 {''.join(move_card(m, d) for m in ms)}
-<div class="done-row"><button class="btn" type="button" data-mark="{d}" aria-pressed="false">Mark Day {d} done</button><span style="color:var(--mute)"><span data-count>0</span>/30 days done on this device</span></div>
+<div class="done-row"><button class="btn" type="button" data-mark="{d}" aria-pressed="false">Mark Day {d} done</button><span class="done-hint" data-hint>Tick the self-check on every move first.</span></div>
+<p class="statline"><span>🔥 Streak: <b data-streak>0</b> day(s)</span> · <span><b data-count>0</b>/30 days done on this device</span></p>
+<div class="unlock" data-unlock hidden role="status" aria-live="polite"></div>
+{teaser(d)}
 <nav class="pager" aria-label="Day navigation">{prev}{nxt}</nav>
 {tail}
 </div></section>
