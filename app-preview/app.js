@@ -65,7 +65,8 @@
         '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
     }
     h += '<div class="card streakcard"><span class="fl">' + (s ? "🔥" : "🏀") + '</span><div><b>' + s + '</b> <span class="mute">day streak</span>' +
-      '<p>' + (dt ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + '</p></div></div>';
+      '<p>' + (dt ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + '</p></div></div>' +
+      (s ? '<div class="sharerow">' + '<button class="big share" data-share>Share your streak</button><p class="u13">Under 13? Parents, share their streak.</p>' + '</div>' : "");
     h += '<div class="card"><div class="row"><b>Your 30 days</b><span class="mute small">' + c + '/30 done</span></div><div class="prog"><i style="width:' + (c / 30 * 100) + '%"></i></div></div>';
     if (!restDay) {
       h += '<div class="card"><b>Today\'s moves</b><ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tierLabel) + "</span></li>"; }).join("") +
@@ -73,6 +74,7 @@
       if (d < 30) { var n2 = day(d + 1); h += '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + n2.d + '</p><b>' + esc(n2.primaryName) + '</b></div>'; }
     }
     $("#tab-today").innerHTML = h;
+    $("#tab-today").querySelectorAll("[data-share]").forEach(function (b) { b.addEventListener("click", openShare); });
     $("#tab-today").querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { openDay(+b.dataset.open, locked(+b.dataset.open)); }); });
     paintTop();
   }
@@ -270,7 +272,7 @@
       '<h2 class="disp">Day ' + d + " done!</h2><p>" + count() + "/30 days complete.</p>" +
       (earned ? '<div class="earned">🏅 ' + earned + " badge earned" + (ni ? " · " + ni + " unlocked" : "") + "</div>" : "") +
       (nx ? '<div class="tm"><small>Tomorrow · Day ' + nx.d + " · " + esc(nx.tierLabel) + "</small><br><b>" + esc(nx.primaryName) + "</b></div>" : '<div class="tm"><b>You finished all 30 days.</b> Film the gauntlet and compare it with Day 1.</div>') +
-      '<div class="acts"><button class="big" data-c="today">Back to Today</button>' + (d === 30 || earned === "Elite" ? '<button class="big ghost" data-c="founding">See the founding offer</button>' : '<button class="big ghost" data-c="map">Open the map</button>') + "</div>";
+      '<div class="acts">' + '<button class="big share" data-share>Share your streak</button><p class="u13">Under 13? Parents, share their streak.</p>' + '<button class="big ghost" data-c="today">Back to Today</button>' + (d === 30 || earned === "Elite" ? '<button class="big ghost" data-c="founding">See the founding offer</button>' : '<button class="big ghost" data-c="map">Open the map</button>') + "</div>";
     c.hidden = false; document.body.style.overflow = "hidden";
     if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
       var cols = ["#0e0e10", "#ffffff", "#FF9A3D", "#7be29a", "#ffd23f"];
@@ -282,9 +284,78 @@
         c.appendChild(p);
       }
     }
-    c.onclick = function (e) { var b = e.target.closest("[data-c]"); if (!b) return; c.hidden = true; c.innerHTML = ""; document.body.style.overflow = ""; show(b.dataset.c); };
+    c.onclick = function (e) { if (e.target.closest("[data-share]")) return openShare(); var b = e.target.closest("[data-c]"); if (!b) return; c.hidden = true; c.innerHTML = ""; document.body.style.overflow = ""; show(b.dataset.c); };
     paintTop();
   }
+
+  /* ---------- streak share card (no name, no photo: just the streak) ---------- */
+  var SHARE_URL = "https://handleslab.com/?ref=streak";
+  function lastDone() { for (var d = 30; d >= 1; d--) if (done[d]) return d; return 0; }
+  function loadImg(src) { return new Promise(function (ok) { var i = new Image(); i.onload = function () { ok(i); }; i.onerror = function () { ok(null); }; i.src = src; }); }
+  function drawCard() {
+    var W = 1080, H = 1350, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    var x = cv.getContext("2d"), s = streak(), c = count(), ld = lastDone(), D = ld ? day(ld) : null;
+    var fonts = document.fonts ? Promise.all([document.fonts.load('120px "Lucky"'), document.fonts.load('40px "Anton"')]).catch(function () {}) : Promise.resolve();
+    return Promise.all([fonts, loadImg("/assets/img/athlete.jpg")]).then(function (r) {
+      var img = r[1];
+      x.fillStyle = "#F77914"; x.fillRect(0, 0, W, H);
+      if (img) x.drawImage(img, 0, 0, img.width, img.height * .74, 0, 0, W, W * .74);
+      var g = x.createLinearGradient(0, 520, 0, 820); g.addColorStop(0, "rgba(14,14,16,0)"); g.addColorStop(1, "rgba(14,14,16,1)");
+      x.fillStyle = g; x.fillRect(0, 520, W, 300); x.fillStyle = "#0e0e10"; x.fillRect(0, 818, W, H - 818);
+      // brand tag top-left
+      x.fillStyle = "#0e0e10"; rr(x, 48, 48, 330, 70, 35); x.fill();
+      x.fillStyle = "#fff"; x.font = '400 36px "Anton", Impact, sans-serif'; x.textBaseline = "middle"; x.fillText("HANDLES LAB", 82, 84);
+      // big streak
+      x.textAlign = "center"; x.textBaseline = "alphabetic";
+      x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 830);
+      x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 830);
+      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 930);
+      x.font = '400 40px "Anton", Impact, sans-serif'; x.fillStyle = "#f6f2ec";
+      x.fillText(D ? ("DAY " + ld + " OF 30 · " + D.tierLabel.toUpperCase()) : "30-DAY DRIBBLING CHALLENGE", W / 2, 1000);
+      // 30-day strip
+      var cw = 26, gap = 6, x0 = (W - (30 * cw + 29 * gap)) / 2;
+      for (var i = 1; i <= 30; i++) { x.fillStyle = done[i] ? "#F77914" : "#2c2c33"; rr(x, x0 + (i - 1) * (cw + gap), 1040, cw, 54, 8); x.fill(); }
+      x.font = '700 34px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'; x.fillStyle = "#b6b0a8";
+      x.fillText(c + "/30 days done · free 30-day dribbling challenge", W / 2, 1150);
+      // footer strip
+      x.fillStyle = "#F77914"; x.fillRect(0, H - 130, W, 130);
+      x.fillStyle = "#0e0e10"; x.font = '400 50px "Anton", Impact, sans-serif'; x.fillText("handleslab.com · @thehandleslab", W / 2, H - 48);
+      return cv;
+    });
+  }
+  function rr(x, a, b, w, h, r) { x.beginPath(); x.moveTo(a + r, b); x.arcTo(a + w, b, a + w, b + h, r); x.arcTo(a + w, b + h, a, b + h, r); x.arcTo(a, b + h, a, b, r); x.arcTo(a, b, a + w, b, r); x.closePath(); }
+  function openShare() {
+    var o = document.getElementById("sharesheet");
+    if (!o) { o = document.createElement("div"); o.id = "sharesheet"; o.className = "sharesheet"; o.setAttribute("role", "dialog"); o.setAttribute("aria-label", "Share your streak"); document.body.appendChild(o); }
+    o.innerHTML = '<div class="ssheet"><button class="x" aria-label="Close">✕</button><p class="kick">Your streak card</p><div class="cardimg"><span class="mute small">Drawing your card…</span></div>' +
+      '<button class="big share" data-go>Share your streak</button><button class="big ghost" data-save>Save image</button>' +
+      '<p class="u13">Under 13? Parents, share their streak.</p><p class="mute small">No name, no photo: just the streak. Link: handleslab.com/?ref=streak</p></div>';
+    o.hidden = false;
+    var blobP = drawCard().then(function (cv) {
+      var im = new Image(); im.alt = "Streak card: " + streak() + "-day streak, handleslab.com · @thehandleslab"; im.src = cv.toDataURL("image/png");
+      o.querySelector(".cardimg").innerHTML = ""; o.querySelector(".cardimg").appendChild(im);
+      return new Promise(function (ok) { cv.toBlob(ok, "image/png"); });
+    });
+    var text = "I'm on a " + streak() + "-day streak in the free 30-day dribbling challenge. Join me: " + SHARE_URL;
+    function close() { o.hidden = true; o.innerHTML = ""; }
+    function save(blob) {
+      var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "handles-lab-streak.png"; document.body.appendChild(a); a.click(); a.remove();
+      try { navigator.clipboard && navigator.clipboard.writeText(SHARE_URL); } catch (e) {}
+      toast("Card saved. Link copied: handleslab.com/?ref=streak");
+    }
+    o.onclick = function (e) {
+      if (e.target === o || e.target.closest(".x")) return close();
+      if (e.target.closest("[data-save]")) return blobP.then(save);
+      if (e.target.closest("[data-go]")) blobP.then(function (blob) {
+        var f = blob && window.File ? new File([blob], "handles-lab-streak.png", { type: "image/png" }) : null;
+        if (f && navigator.canShare && navigator.canShare({ files: [f] })) return navigator.share({ files: [f], text: text, title: "My Handles Lab streak" }).catch(function () {});
+        if (navigator.share) return navigator.share({ title: "My Handles Lab streak", text: text, url: SHARE_URL }).catch(function () {});
+        save(blob);
+      });
+    };
+  }
+  function toast(msg) { var t = document.createElement("div"); t.className = "toast"; t.textContent = msg; document.body.appendChild(t); setTimeout(function () { t.remove(); }, 2800); }
+  window.HLAPP_SHARE = drawCard;
 
   /* ---------- boot ---------- */
   var h0 = (location.hash || "").slice(1);
