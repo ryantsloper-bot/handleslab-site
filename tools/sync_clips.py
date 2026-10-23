@@ -13,6 +13,11 @@ import os, re, shutil, subprocess, sys, glob, json
 SRC = sys.argv[1] if len(sys.argv) > 1 else "/workspace/hoops-ai/content/app-clips"
 DST = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "assets", "clips"))
 LIMIT, PLIMIT = 600_000, 80_000
+# Held clips: one "day-NN/<MOVEID>/level-N" (or "day-NN/level-N") per line in tools/clip_hold.txt. They are NOT copied,
+# so build.py shows that step's diagram instead. To restore one, delete its line and rerun sync_clips.py + build.py.
+HOLD_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "clip_hold.txt")
+HOLD = {l.split("#")[0].strip() for l in open(HOLD_FILE)} - {""} if os.path.exists(HOLD_FILE) else set()
+def held(mp4): return os.path.relpath(os.path.splitext(mp4)[0], SRC) in HOLD
 
 readme_move = {}
 rp = os.path.join(SRC, "README.md")
@@ -49,7 +54,9 @@ for ddir in sorted(glob.glob(os.path.join(SRC, "day-[0-9][0-9]"))):
         files = sorted(glob.glob(os.path.join(mdir, "level-[1-4].mp4")))
         if not files: continue
         mid = os.path.basename(mdir)
-        for f in files: put(f, os.path.join(DST, dname, mid)); n += 1
+        for f in files:
+            if held(f): print('held (not synced):', os.path.relpath(f, SRC)); continue
+            put(f, os.path.join(DST, dname, mid)); n += 1
         moves[mid] = f"{dname}/{mid}"
     flat = sorted(glob.glob(os.path.join(ddir, "level-[1-4].mp4")))
     fmid = readme_move.get(day, "*")
@@ -57,7 +64,9 @@ for ddir in sorted(glob.glob(os.path.join(SRC, "day-[0-9][0-9]"))):
         # per-move folders win: once a day has any <MOVEID>/ folder, its flat files are ignored (never mapped via README)
         print(f"{dname}: flat clips ignored, per-move folders present: {', '.join(sorted(moves))}")
     elif flat:                                                                        # flat layout (backward compatible)
-        for f in flat: put(f, os.path.join(DST, dname)); n += 1
+        for f in flat:
+            if held(f): print('held (not synced):', os.path.relpath(f, SRC)); continue
+            put(f, os.path.join(DST, dname)); n += 1
         moves[fmid] = dname
     if moves: manifest[str(day)] = moves
 os.makedirs(DST, exist_ok=True)

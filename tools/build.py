@@ -60,6 +60,8 @@ PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A12", 6: "A21", 7: "A13",
  23: "C01", 24: "B18", 25: "B13", 26: "C10", 27: "C06", 28: "C02", 29: "B16", 30: "C13"}
 assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
 CLIPMAN = json.load(open(os.path.join(ROOT, "assets/clips/manifest.json"))) if os.path.exists(os.path.join(ROOT, "assets/clips/manifest.json")) else {}
+_hp = os.path.join(ROOT, "tools/clip_hold.txt")
+CLIPHOLD = {l.split("#")[0].strip() for l in open(_hp)} - {""} if os.path.exists(_hp) else set()
 def clip(d, i, mid):
     """Clip for step i of move mid on day d, from assets/clips/manifest.json (written by sync_clips.py).
     Only the move a clip actually shows gets it; every other move keeps its ball-path diagram."""
@@ -67,6 +69,7 @@ def clip(d, i, mid):
     folder = m.get(mid) or (m.get("*") if mid == PRIMARY[d] else None)
     if not folder: return None
     base = f"assets/clips/{folder}/level-{i}"
+    if f"{folder}/level-{i}" in CLIPHOLD: return None   # held in tools/clip_hold.txt: show the step diagram instead
     if os.path.exists(os.path.join(ROOT, base + ".mp4")):
         return "/" + base + ".mp4", ("/" + base + ".jpg") if os.path.exists(os.path.join(ROOT, base + ".jpg")) else ""
     return None

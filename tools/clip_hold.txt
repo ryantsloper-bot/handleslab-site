@@ -1,0 +1,4 @@
+# Clips held back from the site and app (the step shows its ball-path diagram instead).
+# One per line: day-NN/<MOVEID>/level-N or day-NN/level-N. To restore: delete the line, then run
+# tools/sync_clips.py (or copy the clip + poster into assets/clips/) and tools/build.py.
+day-01/A05/level-3   # old white-athlete clip; Option A re-do pending (Shorts Producer, 2026-10-23)
