@@ -67,11 +67,11 @@ SPECS.update({
                   marks=[(1, 565, 600), (2, 360, 668), (3, 155, 600)], under=chevrons(360, 190, "JOG"), extent=[(326, 190), (394, 330)]),
  ("B11", 3): dict(path=BTB, tag="BEHIND THE BACK", bounces=[(360, 640)], ghosts=[(215, 485, "a"), (505, 485, "b")],
                   hands=[("L", 215, 485, None, "left"), ("R", 505, 485, None, "right")],
-                  marks=[(1, 575, 560), (2, 470, 700), (3, 145, 560)], under=chair(360, 215) + back_label(745), over=BODY_BACK,
+                  marks=[(1, 575, 545), (2, 590, 668), (3, 145, 545)], under=chair(360, 215) + back_label(745), over=BODY_BACK,
                   extent=[(314, 175), (406, 255), (150, 760), (570, 760)]),
  ("B11", 4): dict(path=BTB, tag="CHANGE DIRECTION", slow=3.4, fast=1.6, bounces=[(360, 640)], ghosts=[(215, 485, "a"), (505, 485, "b")],
                   hands=[("L", 215, 485, None, "left"), ("R", 505, 485, None, "right")],
-                  marks=[(1, 575, 560), (2, 470, 700), (3, 145, 560)],
+                  marks=[(1, 575, 545), (2, 590, 668), (3, 145, 545)],
                   under=(f'<path d="M520 300 Q360 170 200 300" fill="none" stroke="{CREAM}" stroke-width="14" stroke-linecap="round"/>'
                          f'<path d="M222 262L196 306L246 312" fill="none" stroke="{CREAM}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>'
                          f'<text x="360" y="250" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}" letter-spacing="2">NEW DIRECTION</text>') + back_label(745),
