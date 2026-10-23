@@ -38,8 +38,8 @@
    * The athlete here is the brand athlete (Option A, /assets/img/athlete.webp), named "Your athlete". The character picker
    * (feature/character-picker, behind ?picker=1) layers on top by overriding athName() and athImg() only. */
   var DEF_NAME = "Your athlete";
-  function athName() { return DEF_NAME; }                 // picker: the chosen name (default "Your athlete")
-  function athImg() { return "/assets/img/athlete.webp"; } // picker: still("avatar-192.png") / still("celebrate.webp")
+  function athName() { return PICKER ? ath.name : DEF_NAME; }   // picker flag: the chosen name (default "Your athlete")
+  function athImg(kind) { return PICKER ? still(kind === "celebrate" ? "celebrate.webp" : "avatar-192.png") : "/assets/img/athlete.webp"; }
   function profileCard() {
     var s = streak(), c = count();
     return '<div class="card profile"><img src="' + athImg("avatar") + '" alt="" width="64" height="64"><div class="pc-t"><p class="kick">Your profile</p>' +
@@ -66,6 +66,194 @@
   }
   $("#streak").addEventListener("click", streakScreen);
 
+  /* ---------- character picker (Phase 1, behind a flag) ----------
+   * Flag: ?picker=1 (remembered in localStorage hl.flag.picker=1; ?picker=0 clears it). Flag off = app unchanged.
+   * Storage: hl.athlete = {tone: 1-4, name}. No key yet = tone 3 (Option A) + "Your athlete", onboarding shown once.
+   * Stills: /assets/img/athlete/tone-N/ (see assets/img/athlete/README.md), requested only when the flag is on and
+   * cached by the service worker at runtime (not precached). Lesson clips + diagrams stay Option A. */
+  var PICKER = (function () {
+    try {
+      var q = /[?&]picker=([01])(?:&|$)/.exec(location.search);
+      if (q) { if (q[1] === "1") localStorage.setItem("hl.flag.picker", "1"); else localStorage.removeItem("hl.flag.picker"); }
+      return localStorage.getItem("hl.flag.picker") === "1";
+    } catch (e) { return /[?&]picker=1(?:&|$)/.test(location.search); }
+  })();
+  var ATH_KEY = "hl.athlete", DEF_TONE = 3, NAME_MAX = 14;   // DEF_NAME ("Your athlete") is defined with the profile card above
+  var TONE_LABEL = ["", "Light", "Medium", "Deep warm (Handles Lab default)", "Deepest"];
+  function cleanName(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").trim(); }
+  function readAth() {
+    try {
+      var a = JSON.parse(localStorage.getItem(ATH_KEY) || "null");
+      if (a && typeof a === "object") {
+        var n = cleanName(a.name);
+        return { tone: [1, 2, 3, 4].indexOf(+a.tone) >= 0 ? +a.tone : DEF_TONE, name: n && n.length <= NAME_MAX && /^[A-Za-z0-9 ]+$/.test(n) ? n : DEF_NAME, set: true };
+      }
+    } catch (e) {}
+    return { tone: DEF_TONE, name: DEF_NAME, set: false };
+  }
+  var ath = readAth();
+  function saveAth(tone, name) { ath = { tone: tone, name: name, set: true }; try { localStorage.setItem(ATH_KEY, JSON.stringify({ tone: tone, name: name })); } catch (e) {} }
+  function still(file, tone) { return "/assets/img/athlete/tone-" + (tone || ath.tone) + "/" + file; }
+  function poss(n) { return n + "'s"; }
+  // Phase 2 hook: per-tone lesson clips at /assets/clips/tone-N/..., falling back to the Option A path. Disabled for now.
+  var TONE_CLIPS = false;
+  function clipFor(url) {
+    if (!PICKER || !TONE_CLIPS || !url || url.indexOf("/assets/clips/") !== 0) return { src: url, fb: "" };
+    return { src: url.replace("/assets/clips/", "/assets/clips/tone-" + ath.tone + "/"), fb: url };
+  }
+  function bindClipFallback(root) {
+    root.querySelectorAll("video[data-fb]").forEach(function (v) {
+      v.addEventListener("error", function () { if (v.dataset.fb && v.getAttribute("src") !== v.dataset.fb) { v.src = v.dataset.fb; v.removeAttribute("data-fb"); try { v.play(); } catch (e) {} } }, true);
+    });
+  }
+
+  // Name check. window.HLNAMES (app-preview/names.js, written by tools/build.py) holds SHA-256 hashes only:
+  // b = full real-player names + distinctive single names (data/picker-name-hashes.txt; 1-3 word n-grams as in
+  // tools/build.py, but common first names that are also player names are allowed), w = whole-word
+  // profanity, s = profanity stems matched anywhere (spaces removed). Plain sync SHA-256 so it also works on http.
+  function sha256(str) {
+    var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2];
+    var b = unescape(encodeURIComponent(str)), n = b.length, words = [], i;
+    for (i = 0; i < n; i++) words[i >> 2] |= b.charCodeAt(i) << (24 - (i % 4) * 8);
+    words[n >> 2] |= 0x80 << (24 - (n % 4) * 8);
+    var len = ((n + 8) >> 6) * 16 + 15; for (i = words.length; i <= len; i++) words[i] = words[i] | 0;
+    words[len] = n * 8;
+    var H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19], W = [];
+    function r(x, k) { return (x >>> k) | (x << (32 - k)); }
+    for (var j = 0; j < words.length; j += 16) {
+      var a = H[0], bb = H[1], c = H[2], d = H[3], e = H[4], f = H[5], g = H[6], hh = H[7];
+      for (i = 0; i < 64; i++) {
+        if (i < 16) W[i] = words[j + i] | 0;
+        else W[i] = (W[i - 16] + (r(W[i - 15], 7) ^ r(W[i - 15], 18) ^ (W[i - 15] >>> 3)) + W[i - 7] + (r(W[i - 2], 17) ^ r(W[i - 2], 19) ^ (W[i - 2] >>> 10))) | 0;
+        var t1 = (hh + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + W[i]) | 0, t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & bb) ^ (a & c) ^ (bb & c))) | 0;
+        hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0;
+      }
+      H[0] = (H[0] + a) | 0; H[1] = (H[1] + bb) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0; H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + hh) | 0;
+    }
+    return H.map(function (x) { return ("00000000" + (x >>> 0).toString(16)).slice(-8); }).join("");
+  }
+  var NAMESETS = null;
+  function nameSets() {
+    if (NAMESETS || !window.HLNAMES) return NAMESETS;
+    var L = window.HLNAMES, mk = function (a) { var o = {}; (a || []).forEach(function (x) { o[x] = 1; }); return o; };
+    return (NAMESETS = { b: mk(L.b), w: mk(L.w), s: mk(L.s) });
+  }
+  function leet(s) { return s.replace(/[013457]/g, function (c) { return { 0: "o", 1: "i", 3: "e", 4: "a", 5: "s", 7: "t" }[c]; }); }
+  function nameError(raw) {
+    var n = cleanName(raw);
+    if (!n) return "Give your athlete a name: 1 to 14 letters or numbers.";
+    if (n.length > NAME_MAX) return "Keep it to 14 characters or fewer.";
+    if (!/^[A-Za-z0-9 ]+$/.test(n)) return "Letters, numbers and spaces only.";
+    if (n.toLowerCase() === DEF_NAME.toLowerCase()) return "";
+    var S = nameSets(); if (!S) return "One sec, the name check is still loading. Try again.";
+    var forms = [n.toLowerCase()], lt = leet(n.toLowerCase()); if (lt !== forms[0]) forms.push(lt);
+    for (var f = 0; f < forms.length; f++) {
+      var t = forms[f].match(/[a-z0-9]+/g) || [], k, i;
+      for (k = 1; k <= 3; k++) for (i = 0; i + k <= t.length; i++) if (S.b[sha256(t.slice(i, i + k).join(" "))]) return "That's a real player's name. Make up your own nickname.";
+      for (i = 0; i < t.length; i++) if (S.w[sha256(t[i])]) return "Let's keep it clean. Try another name.";
+      var joined = t.join("");
+      for (i = 0; i < joined.length; i++) for (k = i + 3; k <= joined.length; k++) if (S.s[sha256(joined.slice(i, k))]) return "Let's keep it clean. Try another name.";
+    }
+    return "";
+  }
+
+  function swatchesHTML(sel, idp) {
+    return '<div class="tones" role="radiogroup" aria-label="Skin tone">' + [1, 2, 3, 4].map(function (t) {
+      return '<button type="button" class="tone" role="radio" id="' + idp + t + '" data-tone="' + t + '" aria-checked="' + (t === sel) + '" tabindex="' + (t === sel ? 0 : -1) + '" aria-label="Skin tone ' + t + ' of 4' + (t === DEF_TONE ? ", Handles Lab default" : "") + '">' +
+        '<img src="' + still("swatch.webp", t) + '" alt="" width="360" height="480"><span class="dot t' + t + '" aria-hidden="true"></span></button>';
+    }).join("") + "</div>";
+  }
+  function bindSwatches(root, onPick) {
+    var bs = [].slice.call(root.querySelectorAll(".tone"));
+    function pick(t, focus) {
+      bs.forEach(function (b) { var on = +b.dataset.tone === t; b.setAttribute("aria-checked", on); b.tabIndex = on ? 0 : -1; if (on && focus) b.focus(); });
+      onPick(t);
+    }
+    bs.forEach(function (b) {
+      b.addEventListener("click", function () { pick(+b.dataset.tone); });
+      b.addEventListener("keydown", function (e) {
+        var t = +b.dataset.tone, nx = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+        if (e.key === "Home") nx = 1 - t; if (e.key === "End") nx = 4 - t;
+        if (nx === undefined) return; e.preventDefault(); pick(((t - 1 + nx + 4) % 4) + 1, true);
+      });
+    });
+  }
+  function nameFieldHTML(idp, val) {
+    return '<label class="fld-l" for="' + idp + 'name">Athlete name</label>' +
+      '<input class="fld" id="' + idp + 'name" type="text" value="' + esc(val) + '" maxlength="24" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done" aria-describedby="' + idp + 'hint ' + idp + 'err">' +
+      '<p class="fld-h" id="' + idp + 'hint">1 to 14 letters, numbers or spaces. Use a nickname, not your full real name.</p>' +
+      '<p class="fld-e" id="' + idp + 'err" aria-live="polite"></p>';
+  }
+  function checkField(inp, err) {
+    var m = nameError(inp.value); err.textContent = m ? "⚠ " + m : ""; inp.setAttribute("aria-invalid", m ? "true" : "false");
+    return m ? "" : (cleanName(inp.value) || DEF_NAME);
+  }
+  function setInert(on) { var s = $(".shell"); if (!s) return; if (on) { s.setAttribute("aria-hidden", "true"); s.inert = true; } else { s.removeAttribute("aria-hidden"); s.inert = false; } }
+
+  /* onboarding: 2 skippable steps, shown once before Today */
+  function onboard() {
+    var tone = ath.tone, name = ath.name, o = document.createElement("div");
+    o.className = "onb"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-labelledby", "onb-h");
+    document.body.appendChild(o); document.body.style.overflow = "hidden"; setInert(true);
+    function finish(t, n) { saveAth(t, n); o.remove(); document.body.style.overflow = ""; setInert(false); show("today"); }
+    function step1() {
+      o.innerHTML = '<div class="onb-in"><div class="onb-top"><span class="kick">Step 1 of 2</span><button type="button" class="linkbtn skip">Skip</button></div>' +
+        '<h1 class="disp" id="onb-h" tabindex="-1">Pick your athlete</h1><p class="mute small onb-sub">Choose a skin tone. Same faceless look, same orange and black kit.</p>' +
+        '<div class="onb-prev"><img id="onb-img" src="' + still("hero.webp", tone) + '" alt="Your athlete, skin tone ' + tone + ' of 4" width="720" height="1280"></div>' +
+        swatchesHTML(tone, "onb-t") + '<button type="button" class="big or onb-next">Next: name your athlete →</button></div>';
+      bindSwatches(o, function (t) { tone = t; var im = $("#onb-img", o); im.src = still("hero.webp", t); im.alt = "Your athlete, skin tone " + t + " of 4"; });
+      $(".skip", o).onclick = function () { finish(DEF_TONE, DEF_NAME); };
+      $(".onb-next", o).onclick = step2;
+      $("#onb-h", o).focus();
+    }
+    function step2() {
+      o.innerHTML = '<div class="onb-in"><div class="onb-top"><span class="kick">Step 2 of 2</span><button type="button" class="linkbtn skip">Skip</button></div>' +
+        '<h1 class="disp" id="onb-h" tabindex="-1">Name your athlete</h1>' +
+        '<div class="onb-card"><img src="' + still("avatar.webp", tone) + '" alt="" width="512" height="512"><b class="onb-nm" aria-hidden="true">' + esc(name) + '</b></div>' +
+        '<form class="onb-form" novalidate>' + nameFieldHTML("onb-", name) +
+        '<div class="onb-acts"><button type="button" class="big ghost onb-back">← Back</button><button type="submit" class="big or">Let\'s go →</button></div></form></div>';
+      var inp = $("#onb-name", o), err = $("#onb-err", o), nm = $(".onb-nm", o);
+      inp.addEventListener("input", function () { nm.textContent = cleanName(inp.value) || DEF_NAME; if (err.textContent) checkField(inp, err); });
+      $(".onb-form", o).onsubmit = function (e) { e.preventDefault(); var n = checkField(inp, err); if (n) finish(tone, n); else inp.focus(); };
+      $(".onb-back", o).onclick = step1;
+      $(".skip", o).onclick = function () { finish(tone, DEF_NAME); };
+      $("#onb-h", o).focus();
+    }
+    step1();
+  }
+
+  /* settings: "Your athlete" sheet (same #sheet pattern as the map's day sheet) */
+  function athleteSheet() {
+    var tone = ath.tone, back = document.activeElement, bg = $("#sheet");
+    bg.innerHTML = '<div class="sheet ath-sheet" role="dialog" aria-modal="true" aria-labelledby="ath-h"><div class="grab"></div><p class="kick">Settings</p>' +
+      '<div class="ath-head"><img id="ath-av" src="' + still("avatar.webp", tone) + '" alt="" width="512" height="512"><h2 class="disp" id="ath-h" tabindex="-1">Your athlete</h2></div>' +
+      '<form class="ath-form" novalidate><fieldset><legend class="fld-l">Skin tone</legend>' + swatchesHTML(tone, "ath-t") + '</fieldset>' + nameFieldHTML("ath-", ath.name) +
+      '<button type="submit" class="big or">Save</button><button type="button" class="big ghost" data-x>Cancel</button></form></div>';
+    bg.hidden = false; setInert(true);
+    function close() { bg.hidden = true; bg.innerHTML = ""; bg.onclick = null; document.removeEventListener("keydown", esck); setInert(false); if (back && back.focus) back.focus(); }
+    function esck(e) { if (e.key === "Escape") close(); }
+    document.addEventListener("keydown", esck);
+    bindSwatches(bg, function (t) { tone = t; $("#ath-av", bg).src = still("avatar.webp", t); });
+    var inp = $("#ath-name", bg), err = $("#ath-err", bg);
+    inp.addEventListener("input", function () { if (err.textContent) checkField(inp, err); });
+    $(".ath-form", bg).onsubmit = function (e) { e.preventDefault(); var n = checkField(inp, err); if (!n) return inp.focus(); saveAth(tone, n); close(); paintMe(); show(tab); toast("Saved: " + n); };
+    bg.onclick = function (e) { if (e.target === bg || e.target.closest("[data-x]")) close(); };
+    $("#ath-h", bg).focus();
+  }
+
+  /* header: the athlete avatar button (opens the "Your athlete" sheet) takes the brand icon's spot */
+  function paintMe() {
+    if (!PICKER) return;
+    var br = $(".brand"), me = $("#me");   // the athlete's avatar takes the brand icon's spot (header width unchanged)
+    if (!me) { me = document.createElement("button"); me.id = "me"; me.className = "me"; me.type = "button"; br.insertBefore(me, br.firstChild); br.classList.add("has-me"); me.onclick = athleteSheet; }
+    me.setAttribute("aria-label", "Your athlete: " + ath.name + ". Change skin tone or name");
+    me.innerHTML = '<img src="' + still("avatar-96.png") + '" alt="" width="32" height="32">';
+  }
+  function loadNames() { if (window.HLNAMES || document.getElementById("hlnames")) return; var s = document.createElement("script"); s.id = "hlnames"; s.src = "/app-preview/names.js"; document.head.appendChild(s); }
+
   /* ---------- tabs ---------- */
   var tab = "today";
   function show(t) {
@@ -85,15 +273,15 @@
   function renderToday() {
     var dt = doneToday(), d = today(), D = day(d), s = streak(), c = count();
     var restDay = dt && dt < 30 && !done[30] ? dt : 0;  // finished a day today: show tomorrow first
-    var h = profileCard();
+    var h = profileCard(), heroArt = PICKER ? still("hero.webp") : "/assets/img/hero.webp";
     if (restDay) {
       var nx = day(restDay + 1);
-      h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Done for today</span>' +
+      h += '<div class="hero"><img class="art" src="' + heroArt + '" alt=""><span class="daytag">Done for today</span>' +
         '<h1 class="disp">Day ' + restDay + ' done.</h1><div class="meta"><span>🔥 ' + s + '-day streak</span><span>' + c + '/30 days</span></div>' +
         '<button class="big" data-open="' + d + '">Keep going: Day ' + d + '</button></div>' +
         '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b>' + (cueOf(nx) ? '<p class="mute small" style="margin:4px 0 0">' + esc(cueOf(nx)) + '</p>' : "") + '</div>';
     } else {
-      h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
+      h += '<div class="hero"><img class="art" src="' + heroArt + '" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
         '<h1 class="disp">' + esc(D.title) + '</h1>' + (D.sub ? '<p class="kick">' + esc(D.sub) + '</p>' : '') +
         '<div class="meta"><span>' + esc(D.tierLabel) + '</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
         '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
@@ -191,7 +379,8 @@
   }
   function media(m, s, si) {
     var img = '<img src="/assets/paths/' + m.path + '.svg" alt="Ball path: ' + esc(m.pathLabel) + '" width="160" height="200">';
-    var body = s.dg ? s.dg : s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
+    var cl = clipFor(s.clip);
+    var body = s.dg ? s.dg : s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + cl.src + '"' + (cl.fb ? ' data-fb="' + cl.fb + '"' : "") + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
     return '<figure class="media' + (s.dg ? " dgm" : "") + '">' + body + '<span class="stepno">' + (si + 1) + "</span></figure>";
   }
   function render(i, dir) {
@@ -225,7 +414,7 @@
     if (yes) yes.onclick = function () { var kk = ckey(s.m); if (chk[kk]) delete chk[kk]; else chk[kk] = 1; save("hl-chk", chk); render(P.i); };
     var redo = n.querySelector("[data-redo]"); if (redo) redo.onclick = function () { go(P.i - 4); };
     if (s.k === "step") { bindCounter(n, i, s); if (s.m.steps[s.si].dg) n.classList.add("hasdg"); }
-    stillDiagrams(n);
+    stillDiagrams(n); bindClipFallback(n);
     var v = n.querySelector("video"); if (v && v.play) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
     // chrome
     el.querySelectorAll(".segs i").forEach(function (b, j) { b.className = j < i ? "on" : j === i ? "cur" : ""; });
@@ -309,8 +498,9 @@
   }
   function celebrate(d, earned) {
     var c = $("#celebrate"), s = streak(), nx = d < 30 ? day(d + 1) : null, ni = earned ? TIERS[TIERS.indexOf(earned) + 1] : null;
-    c.innerHTML = '<div class="bigflame" aria-hidden="true">🔥</div><div class="count">' + s + '</div><p style="margin:0">day streak</p>' +
-      '<h2 class="disp">Day ' + d + " done!</h2><p>" + count() + "/30 days complete.</p>" +
+    c.innerHTML = (PICKER ? '<div class="ath-cel"><img src="' + athImg("celebrate") + '" alt="" width="720" height="720"><span class="fb" aria-hidden="true">🔥</span></div>' : '<div class="bigflame" aria-hidden="true">🔥</div>') +
+      '<div class="count">' + s + '</div><p style="margin:0">day streak</p>' +
+      '<h2 class="disp">Day ' + d + (PICKER ? " done, " + esc(athName()) + "!" : " done!") + "</h2><p>" + count() + "/30 days complete.</p>" +
       (earned ? '<div class="earned">🏅 ' + earned + " badge earned" + (ni ? " · " + ni + " unlocked" : "") + "</div>" : "") +
       (nx ? '<div class="tm"><small>Tomorrow · Day ' + nx.d + " · " + esc(nx.tierLabel) + "</small><br><b>" + esc(nx.primaryName) + "</b></div>" : '<div class="tm"><b>You finished all 30 days.</b> Film the gauntlet and compare it with Day 1.</div>') +
       '<div class="acts">' + '<button class="big share" data-share>Share your streak</button><p class="u13">Under 13? Parents, share their streak.</p>' + '<button class="big ghost" data-c="today">Back to Today</button>' + (d === 30 || earned === "Elite" ? '<button class="big ghost" data-c="founding">See the founding offer</button>' : '<button class="big ghost" data-c="map">Open the map</button>') + "</div>";
@@ -329,7 +519,7 @@
     paintTop();
   }
 
-  /* ---------- streak share card (no name, no photo: just the streak) ---------- */
+  /* ---------- streak share card (no name, no photo: just the streak; with the picker flag: the athlete's name + tone still) ---------- */
   var SHARE_ORIGIN = "http://handleslab.com";   // switch to https://handleslab.com once the Pages certificate is issued
   var SHARE_URL = SHARE_ORIGIN + "/?ref=streak";
   function lastDone() { for (var d = 30; d >= 1; d--) if (done[d]) return d; return 0; }
@@ -339,10 +529,14 @@
     var W = 1080, H = 1920, TOP = 250, BOT = H - 340, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     var x = cv.getContext("2d"), s = streak(), c = count(), ld = lastDone(), D = ld ? day(ld) : null;
     var fonts = document.fonts ? Promise.all([document.fonts.load('120px "Lucky"'), document.fonts.load('40px "Anton"')]).catch(function () {}) : Promise.resolve();
-    return Promise.all([fonts, loadImg("/assets/img/athlete.jpg"), loadImg("/assets/img/icon-180.png")]).then(function (r) {
+    return Promise.all([fonts, loadImg(PICKER ? still("share.png") : "/assets/img/athlete.jpg"), loadImg("/assets/img/icon-180.png")]).then(function (r) {
       var img = r[1], logo = r[2], AY = 330, AH = W * .74, base = "#F7841A";
       x.fillStyle = base; x.fillRect(0, 0, W, H);
-      if (img) {
+      if (PICKER) {   // transparent tone still (1080x1350) on the orange comic background
+        var gl = x.createRadialGradient(W * .7, 420, 40, W * .7, 420, 900); gl.addColorStop(0, "#FF9A3D"); gl.addColorStop(1, "rgba(247,132,26,0)");
+        x.fillStyle = gl; x.fillRect(0, 0, W, 1100); halftone(x, 0, 0, W, 1100, "rgba(120,40,0,.08)", 14);
+        if (img) { var sw = 900, sh = sw * img.height / img.width; x.drawImage(img, (W - sw) / 2, 372, sw, sh); }
+      } else if (img) {
         x.drawImage(img, 0, 0, img.width, img.height * .74, 0, AY, W, AH);   // art 330-1129
         // extend the art upward: stretch its top rows over the band (each column keeps its own colour),
         // then feather that band 140px into the art so there is no line
@@ -367,7 +561,8 @@
       x.textAlign = "center"; x.textBaseline = "alphabetic";
       x.font = '400 250px "Lucky", Impact, sans-serif'; x.lineWidth = 22; x.strokeStyle = "#0e0e10"; x.strokeText(String(s), W / 2, 1085);
       x.fillStyle = "#fff"; x.fillText(String(s), W / 2, 1085);
-      x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 1180);
+      if (PICKER) { fit(x, (athName() + " · " + s + "-day streak 🔥").toUpperCase(), W - 120, 84, '"Lucky", Impact, sans-serif'); x.fillStyle = "#F77914"; x.fillText(x.__t, W / 2, 1180); }
+      else { x.font = '400 84px "Lucky", Impact, sans-serif'; x.fillStyle = "#F77914"; x.fillText("DAY STREAK 🔥", W / 2, 1180); }
       if (D) {
         fit(x, "Day " + ld + " · " + moveTitle(D.primaryName), W - 140, 60, '"Anton", Impact, sans-serif'); x.fillStyle = "#fff"; x.fillText(x.__t, W / 2, 1262);
         x.font = '400 36px "Anton", Impact, sans-serif'; x.fillStyle = "#b6b0a8"; x.fillText(D.tierLabel.toUpperCase() + " · " + c + "/30 DAYS DONE", W / 2, 1316);
@@ -390,10 +585,10 @@
     if (!o) { o = document.createElement("div"); o.id = "sharesheet"; o.className = "sharesheet"; o.setAttribute("role", "dialog"); o.setAttribute("aria-label", "Share your streak"); document.body.appendChild(o); }
     o.innerHTML = '<div class="ssheet"><button class="x" aria-label="Close">✕</button><p class="kick">Your streak card</p><div class="cardimg"><span class="mute small">Drawing your card…</span></div>' +
       '<button class="big share" data-go>Share your streak</button><button class="big ghost" data-save>Save image</button>' +
-      '<p class="u13">Under 13? Parents, share their streak.</p><p class="mute small">No name, no photo: just the streak. Link: handleslab.com/?ref=streak</p></div>';
+      '<p class="u13">Under 13? Parents, share their streak.</p><p class="mute small">' + (PICKER ? "Shows your athlete's name, never a photo." : "No name, no photo: just the streak.") + ' Link: handleslab.com/?ref=streak</p></div>';
     o.hidden = false;
     var blobP = drawCard().then(function (cv) {
-      var im = new Image(); im.alt = "Streak card: " + streak() + "-day streak, handleslab.com · @thehandleslab"; im.src = cv.toDataURL("image/png");
+      var im = new Image(); im.alt = "Streak card: " + (PICKER ? athName() + " · " : "") + streak() + "-day streak, handleslab.com · @thehandleslab"; im.src = cv.toDataURL("image/png");
       o.querySelector(".cardimg").innerHTML = ""; o.querySelector(".cardimg").appendChild(im);
       return new Promise(function (ok) { cv.toBlob(ok, "image/png"); });
     });
@@ -420,7 +615,10 @@
 
   /* ---------- boot ---------- */
   var h0 = (location.hash || "").slice(1);
+  if (PICKER) { document.body.classList.add("picker"); loadNames(); paintMe(); }
   show(["map", "founding"].indexOf(h0) >= 0 ? h0 : "today");
+  if (PICKER && !ath.set) onboard();
   if ("serviceWorker" in navigator && window.isSecureContext) addEventListener("load", function () { navigator.serviceWorker.register("/app-preview/sw.js", { scope: "/app-preview/" }).catch(function () {}); });
   window.HLAPP_DEBUG = { openDay: openDay, celebrate: celebrate, show: show, streakScreen: streakScreen };
+  if (PICKER) { window.HLAPP_DEBUG.athleteSheet = athleteSheet; window.HLAPP_DEBUG.nameError = nameError; window.HLAPP_DEBUG.sha256 = sha256; }
 })();
