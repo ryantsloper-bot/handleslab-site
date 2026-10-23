@@ -4,7 +4,7 @@ Reads data/challenge.csv (the 49 challenge moves, already scrubbed of real playe
 private export step outside this repo) and data/banned-name-hashes.txt, writes:
   index.html, day/1..30/index.html, 404.html, sitemap.xml, robots.txt
 Then scans every generated file and FAILS if any real player name appears."""
-import csv, html, json, os, re, sys, collections, datetime
+import csv, html, json, os, re, sys, collections, datetime, glob
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ballpath, stepdiagram
 
@@ -71,8 +71,19 @@ def clip(d, i, mid):
     base = f"assets/clips/{folder}/level-{i}"
     if f"{folder}/level-{i}" in CLIPHOLD: return None   # held in tools/clip_hold.txt: show the step diagram instead
     if os.path.exists(os.path.join(ROOT, base + ".mp4")):
-        return "/" + base + ".mp4", ("/" + base + ".jpg") if os.path.exists(os.path.join(ROOT, base + ".jpg")) else ""
+        return "/" + base + ".mp4" + ver(base + ".mp4"), poster_of(base)
     return None
+def poster_of(base):
+    """Versioned poster level-N.<md5 prefix>.jpg written by sync_clips.py (a new poster = a new filename, since the app's
+    service worker matches posters ignoring the query string). Bare level-N.jpg posters are not allowed."""
+    if os.path.exists(os.path.join(ROOT, base + ".jpg")): sys.exit(f"BUILD FAILED: bare poster {base}.jpg; rerun tools/sync_clips.py")
+    vs = [f for f in glob.glob(os.path.join(ROOT, base + ".*.jpg")) if re.fullmatch(r"level-[1-4]\.[0-9a-f]{8}\.jpg", os.path.basename(f))]
+    if len(vs) > 1: sys.exit(f"BUILD FAILED: several posters for {base}: {vs}")
+    return "/" + os.path.relpath(vs[0], ROOT) if vs else ""
+def ver(rel):
+    """?v=<first 8 hex of the file's md5> on clip URLs: a re-synced clip gets a new URL, so devices that cached the old file fetch the new one."""
+    import hashlib
+    return "?v=" + hashlib.md5(open(os.path.join(ROOT, rel), "rb").read()).hexdigest()[:8]
 PATH_LABEL = {"stance": "stance and slides", "pound": "pound dribble beside the foot", "ladder": "pound at three heights",
  "slaps": "hand-to-hand taps", "kill": "fast low taps", "vfront": "V in front", "vside": "V at the side", "wrap": "wrap around the body",
  "fig8": "figure-8 around the legs", "fig8drib": "figure-8 dribble", "cross": "crossover in front", "thru": "between the legs",

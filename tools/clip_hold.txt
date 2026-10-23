@@ -1,4 +1,6 @@
 # Clips held back from the site and app (the step shows its ball-path diagram instead).
-# One per line: day-NN/<MOVEID>/level-N or day-NN/level-N. To restore: delete the line, then run
-# tools/sync_clips.py (or copy the clip + poster into assets/clips/) and tools/build.py.
+# One per line: day-NN/<MOVEID>/level-N or day-NN/level-N. To restore one: delete its line, then run
+#   python3 tools/sync_clips.py --only day-NN/<MOVEID>/level-N   (copies just that clip + a versioned poster level-N.<md5>.jpg)
+#   python3 tools/build.py && python3 tools/check_prereqs.py      (pages and app pick up the clip with ?v=<md5>)
+# Don't hand-copy a bare level-N.jpg poster: build.py rejects bare posters.
 day-01/A05/level-3   # old white-athlete clip; Option A re-do pending (Shorts Producer, 2026-10-23)
