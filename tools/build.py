@@ -28,7 +28,7 @@ SHORT = {1: "Pound", 2: "Ladder", 3: "V-dribble", 4: "Wraps", 5: "Pretzel", 6: "
  25: "Half spin", 26: "Shake", 27: "Push-pull", 28: "Chains", 29: "Sequence", 30: "Final"}
 PHASES = [(1, 9, "Stationary", "Ball control without moving your feet. Pound, V-dribbles, wraps, crossover, through the legs, behind the back. No space needed."),
           (10, 14, "On the move", "Take it into a hallway or driveway: speed and control dribbles, the crossover on the move, hesitation, in-and-out, change of pace."),
-          (15, 27, "Level up", "Harder moves and your first combos: between the legs and behind the back on the move, hang, snatch back, spin, shake and bake."),
+          (15, 27, "Combos", "Harder moves and your first combos: between the legs and behind the back on the move, hang, snatch back, spin, shake and bake."),
           (28, 30, "Chains", "String it all together into nonstop chains, then the Day 30 gauntlet. Film it and compare it to Day 1.")]
 def phase(d): return next(i + 1 for i, p in enumerate(PHASES) if p[0] <= d <= p[1])
 
@@ -85,11 +85,12 @@ def step_media(r, d, i):
 
 # ---------- levels (same mapping as the email sequence: hoops-ai/email/build_emails.py) ----------
 TIERS = ["Beginner", "Intermediate", "Advanced", "Elite"]
-TIER_TXT = {"Beginner": "Levels 1-2. Ball control and your first moves on the move: pound, V-dribbles, wraps, crossovers, hesitation, change of pace.",
-            "Intermediate": "Level 3. Between the legs and behind the back on the move, first combos, hang dribble, snatch back, the spin.",
-            "Advanced": "Level 4. Half spin, shake and bake, and the nonstop combo chains that finish the challenge.",
-            "Elite": "Level 5. The push-pull crossover: the hardest single move in the 30 days."}
+TIER_TXT = {"Beginner": "Ball control and your first moves on the move: pound, V-dribbles, wraps, crossovers, hesitation, change of pace.",
+            "Intermediate": "Between the legs and behind the back on the move, first combos, hang dribble, snatch back, the spin.",
+            "Advanced": "Half spin, shake and bake, and the nonstop combo chains that finish the challenge.",
+            "Elite": "The push-pull crossover: the hardest single move in the 30 days."}
 def lvl_word(n): return {1: "Beginner", 2: "Beginner", 3: "Intermediate", 4: "Advanced", 5: "Elite"}[n]
+def tier_label(t): return f"Level {TIERS.index(t) + 1} of 4 · {t}"   # the ONE way levels are counted everywhere
 def day_lvl(d): return max(int(m["difficulty"]) for m in days[d])
 def tier(d): return lvl_word(day_lvl(d))
 def tier_i(d): return TIERS.index(tier(d)) + 1
@@ -201,12 +202,13 @@ def legend():
     return '<div class="legend">' + "".join(f'<span><i style="background:{c}"></i>{t}</span>' for c, t in zip(cols, TIERS)) + '<span>✓ done · 🔒 locked · ● today (saved on this device)</span></div>'
 
 def diff(n):
-    n = int(n); return f'<span class="diff" aria-label="Difficulty {n} of 5">' + "".join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(5)) + f' &nbsp;{lvl_word(n)} · Level {n}/5</span>'
+    t = lvl_word(int(n)); k = TIERS.index(t) + 1
+    return f'<span class="diff" aria-label="{tier_label(t)}">' + "".join(f'<i class="{"on" if i < k else ""}"></i>' for i in range(4)) + f' &nbsp;{tier_label(t)}</span>'
 
 # ---------- landing ----------
 def landing():
     a02 = by["A02"]
-    phases = "".join(f'<div class="card phase"><span class="days">Days {ranges(tier_days(t))}</span><h3>{t}</h3><p>{E(TIER_TXT[t])}</p></div>' for t in TIERS)
+    phases = "".join(f'<div class="card phase"><span class="days">Level {TIERS.index(t)+1} of 4 · Days {ranges(tier_days(t))}</span><h3>{t}</h3><p>{E(TIER_TXT[t])}</p></div>' for t in TIERS)
     where = " · ".join(f"Days {a}-{b}: {n.lower()}" for a, b, n, _ in PHASES)
     steps = "".join(f"<li><div><b>Step {i}</b>{E(a02['step'+str(i)])}</div></li>" for i in range(1, 5))
     kid = lambda i: E(by[i]["kid_version"])
@@ -227,7 +229,7 @@ def landing():
 
 <section id="levels"><div class="wrap">
 <div class="sec-head"><span class="kicker">How it works</span><h2>Built like a video game.</h2>
-<p>Every move is broken into levels. Lock in Step 1, then level up. By Day 30 you're chaining combos.</p></div>
+<p>Every move is broken into four steps. Lock in Step 1, then step up. By Day 30 you're chaining combos.</p></div>
 <div class="grid g3">
 <div class="card"><span class="n">01</span><h3>Warm up</h3><p>2-3 minutes reviewing the last three days' moves, so nothing you learned fades.</p></div>
 <div class="card"><span class="n">02</span><h3>Step 1 → Step 4</h3><p>Today's new move in four steps, 3 sets with each hand. Move up only when the step before feels easy.</p></div>
@@ -236,7 +238,7 @@ def landing():
 
 <section id="days"><div class="wrap">
 <div class="sec-head"><span class="kicker">The plan</span><h2>What the 30 days look like</h2>
-<p>Four levels: Beginner, Intermediate, Advanced, Elite. Each day's level is its hardest move (Level 1-5). Finish every day of one level to unlock the next. Every page stays open to preview.</p></div>
+<p>Four levels: Level 1 of 4 · Beginner, Level 2 of 4 · Intermediate, Level 3 of 4 · Advanced, Level 4 of 4 · Elite. A day's level is set by its hardest move. Finish every day of one level to unlock the next. Every page stays open to preview.</p></div>
 <div class="grid g4">{phases}</div>
 <p style="color:var(--mute);font-size:15px;margin-top:16px">Where you'll train: {E(where)}.</p>
 <div class="statrow" data-stats hidden><span>🔥 Streak: <b data-streak>0</b> day(s)</span><span>✓ <b data-count>0</b>/30 done</span><span data-badges></span><a class="btn sm" data-today-link href="/day/1/">Go to today</a></div>
@@ -261,7 +263,7 @@ def landing():
 
 <section id="parents" class="parents"><div class="wrap split">
 <div class="sec-head"><span class="kicker">For kids & parents</span><h2>Built so a 7-year-old can start on Day 1</h2>
-<p>Every move is rated 1 to 5 and every day has a kid version: a simpler way in, often a game. Parents don't need to know basketball. Read the steps out loud and play the defender when a day asks for one.</p>
+<p>Every move has a level, from Beginner to Elite, and every day has a kid version: a simpler way in, often a game. Parents don't need to know basketball. Read the steps out loud and play the defender when a day asks for one.</p>
 <p><a class="btn" href="/day/1/" style="margin-top:14px">Try Day 1 together</a></p></div>
 <ul class="tips">
 <li><b>Right-size the ball.</b> {kid('A02')}.</li>
@@ -289,7 +291,7 @@ Join the waitlist to hear when it opens. Founding price: <b style="color:#fff">$
 <section id="faq"><div class="wrap" style="max-width:820px">
 <div class="sec-head"><span class="kicker">FAQ</span><h2>Questions</h2></div>
 <details><summary>Is it really free?</summary><p>Yes. All 30 days are on this site, free, with no account. The paid app is a separate, optional product for later.</p></details>
-<details><summary>What age is it for?</summary><p>Anyone who can bounce a ball. Days 1-9 are level 1-2 moves a young kid can start with; every day includes a kid version. Later days go up to level 4-5 for older players.</p></details>
+<details><summary>What age is it for?</summary><p>Anyone who can bounce a ball. Days 1-14 are Level 1 of 4 · Beginner moves a young kid can start with; every day includes a kid version. Later days reach Advanced and Elite for older players.</p></details>
 <details><summary>Do I need a hoop or a court?</summary><p>No. It's dribbling only. Days 1-9 need about a 3x3 ft spot; later days use 1-3 chairs or cones and up to 20 ft of hallway or driveway.</p></details>
 <details><summary>What if we miss a day or a move is too hard?</summary><p>Repeat the day. Stay on Step 1 or 2 until it feels easy. The challenge is 30 lessons, not 30 calendar days.</p></details>
 <details><summary>How do I track progress?</summary><p>Tap "Mark day done" at the bottom of each day. It's saved in your browser on that device, and the 30-day map shows a ✓ on finished days.</p></details>
@@ -329,7 +331,7 @@ def lockbox(d):
     if t == 1: return ""
     need = [x for x in range(1, d) if tier_i(x) < t]
     prev = TIERS[t - 2]
-    return (f'<div class="lockbox" data-lock data-need="{",".join(map(str, need))}" hidden><p><b>🔒 {tier(d)} is locked.</b> '
+    return (f'<div class="lockbox" data-lock data-need="{",".join(map(str, need))}" hidden><p><b>🔒 {tier_label(tier(d))} is locked.</b> '
             f'Mark every earlier day done first (the {prev} days and below): <span data-missing></span>.</p>'
             f'<p><a href="#main" data-preview>Preview this day anyway</a> · <a data-next-open href="/day/1/">Go to your next open day</a></p></div>')
 
@@ -337,7 +339,7 @@ def teaser(d):
     if d == 30: return '<div class="teaser"><span class="kicker">Tomorrow</span><p><b>Run the Day 30 gauntlet again and compare it with your Day 1 video.</b></p></div>'
     nxt = days[d + 1]
     main = by[PRIMARY[d + 1]]
-    return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · {tier(d+1)}</span>'
+    return (f'<div class="teaser"><span class="kicker">Tomorrow · Day {d+1} · {tier_label(tier(d+1))}</span>'
             f'<p><b>{E(main["move"])}</b>: {E(main["how_it_works"].split(". ")[0].rstrip("."))}.</p>'
             f'<a href="/day/{d+1}/">Peek at Day {d+1} →</a></div>')
 
@@ -363,9 +365,9 @@ def day_page(d):
     body = f"""<main id="main">
 <section class="dayhero" style="border:0"><div class="wrap">
 <p class="crumb"><a href="/">Handles Lab</a> / <a href="/#days">30-day challenge</a> / Day {d}</p>
-<div class="daynum">Day {d} of 30 · {tier(d)} · {E(ph[2])}</div>
+<div class="daynum">Day {d} of 30 · {tier_label(tier(d))}</div>
 <h1>{E(TITLE[d])}</h1>
-<ul class="meta"><li>{len(ms)} move{"s" if len(ms) > 1 else ""}</li><li>{tier(d)} · up to Level {lvl}/5</li><li>Gear: {E(gear)}</li></ul>
+<ul class="meta"><li>{len(ms)} move{"s" if len(ms) > 1 else ""}</li><li>{tier_label(tier(d))}</li><li>Gear: {E(gear)}</li></ul>
 <div style="margin-top:26px">{daymap(d, mini=True)}</div>
 {lockbox(d)}
 </div></section>
@@ -406,10 +408,10 @@ def app_data():
             for i in range(1, 5):
                 c = clip(d, i) if r["id"] == PRIMARY[d] else None
                 st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else ""})
-            mv.append({"id": r["id"], "name": r["move"], "lvl": int(r["difficulty"]), "tier": lvl_word(int(r["difficulty"])),
+            mv.append({"id": r["id"], "name": r["move"], "lvl": int(r["difficulty"]), "tier": lvl_word(int(r["difficulty"])), "tierLabel": tier_label(lvl_word(int(r["difficulty"]))),
                        "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
                        "path": ballpath.TYPE[r["id"]], "pathLabel": PATH_LABEL[ballpath.TYPE[r["id"]]], "steps": st})
-        D.append({"d": d, "title": TITLE[d], "tier": tier(d), "lvl": day_lvl(d), "phase": PHASES[phase(d) - 1][2],
+        D.append({"d": d, "title": TITLE[d], "tier": tier(d), "tierLabel": tier_label(tier(d)), "tierN": TIERS.index(tier(d)) + 1, "phase": PHASES[phase(d) - 1][2],
                   "primary": PRIMARY[d], "primaryName": by[PRIMARY[d]]["move"], "moves": mv})
     return {"v": 1, "tiers": TIERS, "days": D}
 

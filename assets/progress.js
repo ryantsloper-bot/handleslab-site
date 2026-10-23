@@ -12,6 +12,7 @@
   var done = load("hl-done"), chk = load("hl-chk"), badges = load("hl-badges");
   for (var k in done) if (done[k] === 1) done[k] = "";               // migrate old format
   var tierIdx = function (d) { return HL.order.indexOf(HL.tiers[d]); };
+  var label = function (t) { return "Level " + (HL.order.indexOf(t) + 1) + " of 4 · " + t; };
   function missingFor(d) { var m = []; for (var x = 1; x < d; x++) if (tierIdx(x) < tierIdx(d) && !done[x]) m.push(x); return m; }
   function locked(d) { return tierIdx(d) > 0 && missingFor(d).length > 0; }
   function today() { for (var d = 1; d <= 30; d++) if (!done[d] && !locked(d)) return d; for (d = 1; d <= 30; d++) if (!done[d]) return d; return 30; }
@@ -33,7 +34,7 @@
     document.querySelectorAll("[data-streak]").forEach(function (e) { e.textContent = streak(); });
     document.querySelectorAll("[data-today-link],[data-next-open]").forEach(function (a) { a.href = "/day/" + td + "/"; a.textContent = a.hasAttribute("data-today-link") ? "Go to today: Day " + td : "Go to your next open day (Day " + td + ")"; });
     var b = document.querySelector("[data-badges]");
-    if (b) b.innerHTML = HL.order.filter(tierComplete).map(function (t) { return '<span class="badge-chip">🏅 ' + t + "</span>"; }).join("");
+    if (b) b.innerHTML = HL.order.filter(tierComplete).map(function (t) { return '<span class="badge-chip">🏅 ' + label(t) + "</span>"; }).join("");
     var st = document.querySelector("[data-stats]"); if (st && cnt) st.hidden = false;
   }
   // locked state on a day page
@@ -76,8 +77,8 @@
       if (tierComplete(t) && !badges[t]) {
         badges[t] = 1; save("hl-badges", badges);
         var nxt = HL.order[i + 1];
-        u.innerHTML = '<span class="kicker" style="color:var(--ink)">Level complete</span><span class="disp">🏅 ' + t + " badge earned!</span>" +
-          (nxt ? "<p><b>" + nxt + " is unlocked.</b> <a href=\"/day/" + today() + "/\">Go to Day " + today() + " →</a></p>" : "<p><b>Every level done. You finished the challenge!</b></p>");
+        u.innerHTML = '<span class="kicker" style="color:var(--ink)">Level complete</span><span class="disp">🏅 ' + t + " badge earned!</span><p style=\"margin:0\"><b>" + label(t) + " complete.</b></p>" +
+          (nxt ? "<p><b>" + label(nxt) + " is unlocked.</b> <a href=\"/day/" + today() + "/\">Go to Day " + today() + " →</a></p>" : "<p><b>Every level done. You finished the challenge!</b></p>");
         u.hidden = false; u.scrollIntoView({ behavior: "smooth", block: "center" });
         return;
       }

@@ -31,7 +31,7 @@
   function paintTop() {
     var s = streak(), f = $("#streak");
     f.querySelector("b").textContent = s; f.classList.toggle("off", !s); f.setAttribute("aria-label", "Streak: " + s + " days");
-    $("#lvlchip").textContent = currentTier();
+    var ct = currentTier(); $("#lvlchip").textContent = "Level " + (TIERS.indexOf(ct) + 1) + " of 4 · " + ct;
   }
 
   /* ---------- tabs ---------- */
@@ -57,18 +57,18 @@
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Done for today</span>' +
         '<h1 class="disp">Day ' + restDay + ' done.</h1><div class="meta"><span>🔥 ' + s + '-day streak</span><span>' + c + '/30 days</span></div>' +
         '<button class="big" data-open="' + d + '">Keep going: Day ' + d + '</button></div>' +
-        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tier) + '</p><b>' + esc(nx.primaryName) + '</b><p class="mute small" style="margin:4px 0 0">' + esc(nx.title) + '</p></div>';
+        '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + nx.d + ' · ' + esc(nx.tierLabel) + '</p><b>' + esc(nx.primaryName) + '</b><p class="mute small" style="margin:4px 0 0">' + esc(nx.title) + '</p></div>';
     } else {
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Today · Day ' + d + ' of 30</span>' +
         '<h1 class="disp">' + esc(D.title) + '</h1>' +
-        '<div class="meta"><span>' + esc(D.tier) + ' · Level ' + D.lvl + '/5</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
+        '<div class="meta"><span>' + esc(D.tierLabel) + '</span><span>' + D.moves.length + ' move' + (D.moves.length > 1 ? "s" : "") + '</span><span>10-15 min</span></div>' +
         '<button class="big" data-open="' + d + '">' + (locked(d) ? "Preview Day " + d : "Start Day " + d) + ' →</button></div>';
     }
     h += '<div class="card streakcard"><span class="fl">' + (s ? "🔥" : "🏀") + '</span><div><b>' + s + '</b> <span class="mute">day streak</span>' +
       '<p>' + (dt ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + '</p></div></div>';
     h += '<div class="card"><div class="row"><b>Your 30 days</b><span class="mute small">' + c + '/30 done</span></div><div class="prog"><i style="width:' + (c / 30 * 100) + '%"></i></div></div>';
     if (!restDay) {
-      h += '<div class="card"><b>Today\'s moves</b><ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tier) + " · L" + m.lvl + "</span></li>"; }).join("") +
+      h += '<div class="card"><b>Today\'s moves</b><ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tierLabel) + "</span></li>"; }).join("") +
         '</ul><p class="mute small" style="margin:10px 0 0">Gear: ' + esc(gearOf(D)) + '</p></div>';
       if (d < 30) { var n2 = day(d + 1); h += '<div class="card tomorrow"><p class="kick">Tomorrow · Day ' + n2.d + '</p><b>' + esc(n2.primaryName) + '</b></div>'; }
     }
@@ -83,21 +83,21 @@
     var h = '<p class="kick" style="margin-top:6px">30-day map</p><div class="stats"><div class="stat"><b>' + c + '</b><span>days done</span></div><div class="stat"><b>' + streak() + '</b><span>day streak</span></div><div class="stat"><b>' + TIERS.filter(tierDone).length + '/4</b><span>badges</span></div></div>';
     h += '<div class="grid">' + DAYS.map(function (D) {
       var cl = "cell" + (done[D.d] ? " done" : locked(D.d) ? " locked" : "") + (D.d === td && !done[D.d] ? " today" : "");
-      return '<button class="' + cl + '" data-t="' + (TIERS.indexOf(D.tier) + 1) + '" data-d="' + D.d + '" aria-label="Day ' + D.d + ': ' + esc(D.title) + (done[D.d] ? ", done" : locked(D.d) ? ", locked" : "") + '">' + D.d + "<small>" + (D.d === td && !done[D.d] ? "Today" : esc(D.tier.slice(0, 3))) + "</small></button>";
+      return '<button class="' + cl + '" data-t="' + (TIERS.indexOf(D.tier) + 1) + '" data-d="' + D.d + '" aria-label="Day ' + D.d + ': ' + esc(D.title) + (done[D.d] ? ", done" : locked(D.d) ? ", locked" : "") + '">' + D.d + "<small>" + (D.d === td && !done[D.d] ? "Today" : "L" + D.tierN) + "</small></button>";
     }).join("") + "</div>";
-    h += '<div class="legend">' + ["#18181b", "#1d1712", "#2a180a", "#3a1c04"].map(function (c, i) { return '<span><i style="background:' + c + '"></i>' + TIERS[i] + "</span>"; }).join("") + "<span>✓ done · 🔒 locked</span></div>";
+    h += '<div class="legend">' + ["#18181b", "#1d1712", "#2a180a", "#3a1c04"].map(function (c, i) { return '<span><i style="background:' + c + '"></i>L' + (i + 1) + " · " + TIERS[i] + "</span>"; }).join("") + "<span>✓ done · 🔒 locked</span></div>";
     h += '<div class="card"><b>Badges</b><p class="mute small" style="margin:2px 0 10px">Finish every day of a level to earn its badge and unlock the next level.</p><div class="badges">' +
-      TIERS.map(function (t) { return '<span class="badge' + (tierDone(t) ? " on" : "") + '">' + (tierDone(t) ? "🏅 " : "○ ") + t + "</span>"; }).join("") + "</div></div>";
+      TIERS.map(function (t) { return '<span class="badge' + (tierDone(t) ? " on" : "") + '">' + (tierDone(t) ? "🏅 " : "○ ") + "Level " + (TIERS.indexOf(t) + 1) + " of 4 · " + t + "</span>"; }).join("") + "</div></div>";
     $("#tab-map").innerHTML = h;
     $("#tab-map").querySelectorAll(".cell").forEach(function (b) { b.addEventListener("click", function () { daySheet(+b.dataset.d); }); });
     paintTop();
   }
   function daySheet(d) {
     var D = day(d), lk = !done[d] && locked(d), miss = missingFor(d);
-    var h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Day ' + d + '"><div class="grab"></div><p class="kick">Day ' + d + " · " + esc(D.tier) + " · Level " + D.lvl + "/5" + '</p><h2 class="disp">' + esc(D.title) + "</h2>" +
-      '<ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>L" + m.lvl + "</span></li>"; }).join("") + "</ul>";
+    var h = '<div class="sheet" role="dialog" aria-modal="true" aria-label="Day ' + d + '"><div class="grab"></div><p class="kick">Day ' + d + " · " + esc(D.tierLabel) + '</p><h2 class="disp">' + esc(D.title) + "</h2>" +
+      '<ul class="movelist">' + D.moves.map(function (m) { return "<li><span>" + esc(m.name) + "</span><span>" + esc(m.tierLabel) + "</span></li>"; }).join("") + "</ul>";
     if (done[d]) h += '<p class="mute small">✓ Done' + (done[d] ? " on " + esc(done[d]) : "") + '</p><button class="big or" data-go="open">Practice again</button>';
-    else if (lk) h += '<div class="preview-note">🔒 <b>' + esc(D.tier) + " is locked.</b> Finish " + miss.map(function (x) { return "Day " + x; }).join(", ") + ' first.</div><button class="big or" data-go="today">Go to today: Day ' + today() + '</button><button class="big ghost" data-go="preview">Preview anyway</button>';
+    else if (lk) h += '<div class="preview-note">🔒 <b>' + esc(D.tierLabel) + " is locked.</b> Finish " + miss.map(function (x) { return "Day " + x; }).join(", ") + ' first.</div><button class="big or" data-go="today">Go to today: Day ' + today() + '</button><button class="big ghost" data-go="preview">Preview anyway</button>';
     else h += '<button class="big or" data-go="open">Start Day ' + d + "</button>";
     h += "</div>";
     var bg = $("#sheet"); bg.innerHTML = h; bg.hidden = false;
@@ -121,7 +121,7 @@
     P = { d: d, D: D, preview: !!preview && !done[d] && locked(d), slides: slides, i: 0 };
     var el = $("#player");
     el.innerHTML = '<div class="pbar"><button class="x" aria-label="Close">✕</button><div class="segs">' + slides.map(function () { return "<i></i>"; }).join("") + '</div></div>' +
-      '<div class="pctx"><span>Day ' + d + " · " + esc(D.tier) + '</span><span class="pos"></span></div><div class="stage"></div>' +
+      '<div class="pctx"><span>Day ' + d + " · " + esc(D.tierLabel) + '</span><span class="pos"></span></div><div class="stage"></div>' +
       '<div class="pnav"><button class="big back" aria-label="Back">←</button><button class="big or next">Next →</button></div>';
     el.hidden = false; document.body.style.overflow = "hidden";
     $(".x", el).onclick = closePlayer;
@@ -205,7 +205,7 @@
     c.innerHTML = '<div class="bigflame" aria-hidden="true">🔥</div><div class="count">' + s + '</div><p style="margin:0">day streak</p>' +
       '<h2 class="disp">Day ' + d + " done!</h2><p>" + count() + "/30 days complete.</p>" +
       (earned ? '<div class="earned">🏅 ' + earned + " badge earned" + (ni ? " · " + ni + " unlocked" : "") + "</div>" : "") +
-      (nx ? '<div class="tm"><small>Tomorrow · Day ' + nx.d + " · " + esc(nx.tier) + "</small><br><b>" + esc(nx.primaryName) + "</b></div>" : '<div class="tm"><b>You finished all 30 days.</b> Film the gauntlet and compare it with Day 1.</div>') +
+      (nx ? '<div class="tm"><small>Tomorrow · Day ' + nx.d + " · " + esc(nx.tierLabel) + "</small><br><b>" + esc(nx.primaryName) + "</b></div>" : '<div class="tm"><b>You finished all 30 days.</b> Film the gauntlet and compare it with Day 1.</div>') +
       '<div class="acts"><button class="big" data-c="today">Back to Today</button>' + (d === 30 || earned === "Elite" ? '<button class="big ghost" data-c="founding">See the founding offer</button>' : '<button class="big ghost" data-c="map">Open the map</button>') + "</div>";
     c.hidden = false; document.body.style.overflow = "hidden";
     if (!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)) {
