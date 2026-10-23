@@ -4,7 +4,7 @@ Reads data/challenge.csv (the 49 challenge moves, already scrubbed of real playe
 private export step outside this repo) and data/banned-name-hashes.txt, writes:
   index.html, day/1..30/index.html, 404.html, sitemap.xml, robots.txt
 Then scans every generated file and FAILS if any real player name appears."""
-import csv, html, os, re, sys, collections, datetime
+import csv, html, json, os, re, sys, collections, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import ballpath
 
@@ -57,8 +57,14 @@ PRIMARY = {1: "A02", 2: "A03", 3: "A10", 4: "A06", 5: "A08", 6: "A12", 7: "A13",
  12: "B06", 13: "B05", 14: "B07", 15: "C08", 16: "B09", 17: "B10", 18: "C01", 19: "B11", 20: "B18", 21: "B17", 22: "B14",
  23: "B15", 24: "B12", 25: "B13", 26: "C10", 27: "B16", 28: "C06", 29: "C02", 30: "C13"}
 assert all(PRIMARY[d] in [m["id"] for m in days[d]] for d in range(1, 31))
-def clip(d, i):
-    base = f"assets/clips/day-{d:02d}/level-{i}"
+CLIPMAN = json.load(open(os.path.join(ROOT, "assets/clips/manifest.json"))) if os.path.exists(os.path.join(ROOT, "assets/clips/manifest.json")) else {}
+def clip(d, i, mid):
+    """Clip for step i of move mid on day d, from assets/clips/manifest.json (written by sync_clips.py).
+    Only the move a clip actually shows gets it; every other move keeps its ball-path diagram."""
+    m = CLIPMAN.get(str(d), {})
+    folder = m.get(mid) or (m.get("*") if mid == PRIMARY[d] else None)
+    if not folder: return None
+    base = f"assets/clips/{folder}/level-{i}"
     if os.path.exists(os.path.join(ROOT, base + ".mp4")):
         return "/" + base + ".mp4", ("/" + base + ".jpg") if os.path.exists(os.path.join(ROOT, base + ".jpg")) else ""
     return None
@@ -73,7 +79,7 @@ PATH_LABEL = {"stance": "stance and slides", "pound": "pound dribble beside the 
  "gauntlet": "three-chair gauntlet"}
 
 def step_media(r, d, i):
-    c = clip(d, i) if r["id"] == PRIMARY[d] else None
+    c = clip(d, i, r["id"])
     t = ballpath.TYPE[r["id"]]
     svg = f'<img src="/assets/paths/{t}.svg" width="160" height="200" loading="lazy" alt="Ball path: {E(PATH_LABEL[t])}">'
     if c:
@@ -406,7 +412,7 @@ def app_data():
         for r in days[d]:
             st = []
             for i in range(1, 5):
-                c = clip(d, i) if r["id"] == PRIMARY[d] else None
+                c = clip(d, i, r["id"])
                 st.append({"t": r["step" + str(i)], "clip": c[0] if c else "", "poster": c[1] if c else ""})
             mv.append({"id": r["id"], "name": r["move"], "lvl": int(r["difficulty"]), "tier": lvl_word(int(r["difficulty"])), "tierLabel": tier_label(lvl_word(int(r["difficulty"]))),
                        "how": r["how_it_works"], "cues": r["cues"], "kid": r["kid_version"], "gear": r["equipment"],
