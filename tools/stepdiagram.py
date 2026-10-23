@@ -10,12 +10,12 @@ Pure inline SVG + SMIL: no requests, so it works offline in the PWA. Pages pause
 Reusable: add a (move id, step) entry to SPECS. Only ids/steps listed in ENABLED render; everything else
 keeps its ball-path drawing. build.py calls diagram() only for steps with no clip."""
 from html import escape as E
+import re
 OR, INK, CREAM, WHITE = "#F77914", "#0e0e10", "#fff7ef", "#ffffff"
 FEET = {"L": (285, 500), "R": (435, 500)}
 HEAD = (360, 398)
 
-# figure-8 paths around the feet (crossing between them); P8 tight (pretzel), W8 wide (wrap / dribble)
-P8 = "M360 500 C360 410 200 410 200 500 C200 590 360 590 360 500 C360 410 520 410 520 500 C520 590 360 590 360 500"
+# figure-8 path around the feet (crossing between them), wide (wrap / dribble)
 W8 = "M360 500 C360 380 150 380 150 500 C150 620 360 620 360 500 C360 380 570 380 570 500 C570 620 360 620 360 500"
 RICO = "M360 250 L360 500 L360 640 C600 640 600 250 360 250"           # front -> bounce between feet -> catch behind -> bring back
 BULLET = "M360 398 L360 500 L360 640 C600 640 600 398 360 398"         # starts overhead
@@ -27,16 +27,8 @@ def wrap(txt, n=34):
         else: line = (line + " " + w).strip()
     return out + [line]
 
-H_PRETZEL = [("L", 232, 580, "a", "down"), ("R", 360, 462, "a", "upright"), ("R", 488, 580, "b", "down"), ("L", 360, 462, "b", "upleft")]
 H_RICO = [("L", 312, 250, "a", "left"), ("R", 408, 250, "a", "right"), ("L", 312, 640, "b", "left"), ("R", 408, 640, "b", "right")]
 SPECS = {
- # Day 5 pretzel (A08)
- ("A08", 1): dict(path=W8, tag="NO DRIBBLE", hands=[("L", 150, 500, None, "down"), ("R", 570, 500, None, "down")],
-                  marks=[(1, 215, 352), (2, 300, 612), (3, 505, 352)]),
- ("A08", 2): dict(path=P8, tag="SWAP HANDS", hands=H_PRETZEL, marks=[(1, 175, 455), (2, 360, 625), (3, 545, 455)]),
- ("A08", 3): dict(path=P8, tag="FASTER", slow=3.2, fast=1.4, hands=H_PRETZEL, marks=[(1, 175, 455), (2, 360, 625), (3, 545, 455)]),
- ("A08", 4): dict(path=W8, tag="PRETZEL → DRIBBLE", bounces=[(150, 500), (360, 500), (570, 500)],
-                  hands=[("L", 172, 432, None, "up"), ("R", 548, 432, None, "up")], marks=[(1, 360, 600), (2, 105, 600), (3, 615, 600)]),
  # Day 9 ricochet (A09) steps without a clip, figure-8 dribble (A15) step 1
  ("A09", 2): dict(path=RICO, tag="CATCH BEHIND", bounces=[(360, 500)], hands=H_RICO, marks=[(1, 360, 178), (2, 205, 560), (3, 360, 715)], split=.5),
  ("A09", 3): dict(path=RICO, tag="10 IN A ROW", bounces=[(360, 500)], hands=H_RICO, marks=[(1, 360, 178), (2, 205, 560), (3, 360, 715)], split=.5, slow=3.0, fast=1.6),
@@ -78,8 +70,33 @@ SPECS.update({
                   over=BODY_BACK, extent=[(190, 200), (530, 320), (150, 760), (570, 760)]),
 })
 
-# Turned on only where the CEO asked: all Day 5 pretzel steps + the Day 9 steps with no clip.
-ENABLED = {("A08", 1), ("A08", 2), ("A08", 3), ("A08", 4), ("A09", 2), ("A09", 3), ("A09", 4), ("A15", 1),
+# Day 5 stationary in-and-out (A21): one-hand fake crossover. The ball goes toward the middle (like a crossover),
+# the wrist turns over and it comes back out on the same side. Right hand as drawn; left hand is the mirror (x -> 720 - x).
+INOUT_R = "M560 470 C585 370 500 265 400 270 C450 330 520 420 560 470"
+def _mirror_path(d):
+    t = re.findall(r"[A-Za-z]|-?\d+(?:\.\d+)?", d); out, xy = [], 0
+    for v in t:
+        if v.isalpha(): out.append(v); xy = 0
+        else: out.append(str(720 - float(v)).rstrip("0").rstrip(".") if xy % 2 == 0 else v); xy += 1
+    return " ".join(out)
+def _fake_arrow(side):
+    """Dashed 'would-be crossover' arrow from the in-point toward the other hand, with a FAKE CROSS label."""
+    m = (lambda x: x) if side == "R" else (lambda x: 720 - x)
+    return (f'<path d="M{m(366)} 272 Q{m(300)} 262 {m(236)} 290" fill="none" stroke="{CREAM}" stroke-width="10" stroke-linecap="round" stroke-dasharray="4 16"/>'
+            f'<path d="M{m(256)} 262L{m(230)} 292L{m(268)} 308" fill="none" stroke="{CREAM}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>'
+            f'<text x="{m(290)}" y="234" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="30" fill="{INK}" letter-spacing="2">FAKE CROSS</text>')
+def _inout(side, pace):
+    R = side == "R"; mx = (lambda x: x) if R else (lambda x: 720 - x)
+    return dict(path=INOUT_R if R else _mirror_path(INOUT_R), tag=("RIGHT HAND" if R else "LEFT HAND"), pace=pace,
+                slow=(2.6 if pace == "slow" else 1.1), fast=(2.6 if pace == "slow" else 1.1),
+                bounces=[(mx(560), 470)], hands=[(side, mx(560), 470, None, "right" if R else "left")],
+                marks=[(1, mx(650), 360), (2, mx(455), 200), (3, mx(600), 585)],
+                under=_fake_arrow(side), extent=[(mx(220), 200), (mx(360), 310)])
+SPECS.update({("A21", 1): _inout("R", "slow"), ("A21", 2): _inout("L", "slow"),
+              ("A21", 3): _inout("R", "game"), ("A21", 4): _inout("L", "game")})
+
+# Turned on only where the CEO asked: all Day 5 in-and-out steps (no clips yet) + the Day 9/17/19 steps with no clip.
+ENABLED = {("A21", 1), ("A21", 2), ("A21", 3), ("A21", 4), ("A09", 2), ("A09", 3), ("A09", 4), ("A15", 1),
            ("B10", 3), ("B11", 3), ("B11", 4)}
 
 def ball(r=30, ghost=False):
@@ -122,6 +139,13 @@ def _bbox(spec):
     for (x, y, _p) in feet_of(spec): xs += [x - 40, x + 40]; ys += [y - 66, y + 66]
     for (x, y) in spec.get("extent", []): xs.append(x); ys.append(y)
     return min(xs), min(ys), max(xs), max(ys)
+
+def speed_badge(s, k, T):
+    """Default: one slow lap then one game-speed lap (badge switches). pace='slow' / 'game': every lap at that speed, fixed badge."""
+    if s.get("pace") == "slow": return f'<text x="574" y="120" text-anchor="middle" fill="{INK}">🐢 SLOW</text>'
+    if s.get("pace") == "game": return f'<text x="574" y="120" text-anchor="middle" fill="{OR}">🐇 GAME SPEED</text>'
+    return (f'<text x="574" y="120" text-anchor="middle" fill="{INK}">🐢 SLOW FIRST<animate attributeName="opacity" values="1;0;1" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>'
+            f'<text x="574" y="120" text-anchor="middle" fill="{OR}" opacity="0">🐇 GAME SPEED<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>')
 
 def diagram(mid, step, cues, uid, step_text=""):
     if (mid, step) not in ENABLED or (mid, step) not in SPECS: return None
@@ -191,14 +215,12 @@ def diagram(mid, step, cues, uid, step_text=""):
     # top chips: tag (starts at x=168, clear of the app's step-number badge) + speed (right)
     o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="30" letter-spacing="2">'
              f'<rect x="168" y="82" width="{min(272, 30 + 14 * len(s["tag"]))}" height="54" rx="27" fill="{INK}"/><text x="183" y="118" font-size="25" fill="{WHITE}">{E(s["tag"])}</text>'
-             f'<g><rect x="452" y="82" width="244" height="54" rx="27" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>'
-             f'<text x="574" y="120" text-anchor="middle" fill="{INK}">🐢 SLOW FIRST<animate attributeName="opacity" values="1;0;1" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>'
-             f'<text x="574" y="120" text-anchor="middle" fill="{OR}" opacity="0">🐇 GAME SPEED<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text></g></g>')
+             f'<g><rect x="452" y="82" width="244" height="54" rx="27" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>' + speed_badge(s, k, T) + '</g></g>')
     o.append("</svg>")
     return "".join(o)
 
 if __name__ == "__main__":   # preview: python3 tools/stepdiagram.py out.html
     import sys
-    cues = {"A08": "Little hands, fast hands; mini squat; head up", "A09": "Bounce hard; hands ready behind; knees bent", "A15": "Low dribbles; wide stance", "B10": "Bounce as front foot lands; low", "B11": "Body ahead of ball; pull with wrist; eyes up"}
+    cues = {"A21": "Hand on the side of the ball; wrist turns it back out; same hand, no carry", "A09": "Bounce hard; hands ready behind; knees bent", "A15": "Low dribbles; wide stance", "B10": "Bounce as front foot lands; low", "B11": "Body ahead of ball; pull with wrist; eyes up"}
     html = "".join(f'<div style="display:inline-block;width:300px;margin:6px">{diagram(m, st, cues[m], f"{m}{st}")}</div>' for (m, st) in sorted(ENABLED))
     open(sys.argv[1], "w").write('<!doctype html><meta charset="utf-8"><body style="background:#111;margin:0">' + html)

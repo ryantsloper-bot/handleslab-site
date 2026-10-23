@@ -47,7 +47,7 @@ T = {
  "gauntlet": cone(40, 40) + cone(120, 100) + cone(40, 160) + path("M80 14 Q130 40 80 70 Q30 100 80 130 Q130 160 80 192") + ball(80, 14) + text(124, 40, "1", 12) + text(36, 104, "2", 12) + text(124, 164, "3", 12),
 }
 TYPE = {"A01":"stance","A02":"pound","A05":"slaps","A03":"ladder","A20":"pound","A10":"vfront","A11":"vside","A06":"wrap","A07":"fig8",
- "A08":"fig8","A04":"kill","A12":"cross","A13":"thru","A14":"behind","A09":"ricochet","A15":"fig8drib","B01":"speed","B02":"control",
+ "A21":"inout","A04":"kill","A12":"cross","A13":"thru","A14":"behind","A09":"ricochet","A15":"fig8drib","B01":"speed","B02":"control",
  "F01":"jumpstop","B04":"cross","B06":"hesi","B05":"inout","B07":"pace","B08":"stutter","C08":"hesi","C09":"stutter","B09":"skip",
  "B10":"thru","C01":"combo","B11":"behind","B18":"double","C07":"inout","B17":"hang","B14":"hang","B03":"retreat","B15":"snatch",
  "B12":"spin","F03":"pivot","B13":"halfspin","C12":"spin","C10":"behind","B16":"pushpull","C03":"combo","C04":"chain","C05":"chain",
