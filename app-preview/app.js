@@ -157,7 +157,7 @@
   function media(m, s, si) {
     var img = '<img src="/assets/paths/' + m.path + '.svg" alt="Ball path: ' + esc(m.pathLabel) + '" width="160" height="200">';
     var body = s.dg ? s.dg : s.clip ? '<video muted loop playsinline autoplay preload="auto" src="' + s.clip + '"' + (s.poster ? ' poster="' + s.poster + '"' : "") + ' aria-label="Step ' + (si + 1) + ' loop"></video>' : img;
-    return '<figure class="media">' + body + '<span class="stepno">' + (si + 1) + "</span></figure>";
+    return '<figure class="media' + (s.dg ? " dgm" : "") + '">' + body + '<span class="stepno">' + (si + 1) + "</span></figure>";
   }
   function render(i, dir) {
     var el = $("#player"), st = $(".stage", el), s = P.slides[i], h = "";
@@ -189,7 +189,7 @@
     var yes = n.querySelector(".yes");
     if (yes) yes.onclick = function () { var kk = ckey(s.m); if (chk[kk]) delete chk[kk]; else chk[kk] = 1; save("hl-chk", chk); render(P.i); };
     var redo = n.querySelector("[data-redo]"); if (redo) redo.onclick = function () { go(P.i - 4); };
-    if (s.k === "step") bindCounter(n, i, s);
+    if (s.k === "step") { bindCounter(n, i, s); if (s.m.steps[s.si].dg) n.classList.add("hasdg"); }
     stillDiagrams(n);
     var v = n.querySelector("video"); if (v && v.play) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
     // chrome

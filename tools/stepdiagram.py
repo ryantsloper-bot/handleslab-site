@@ -86,25 +86,25 @@ def diagram(mid, step, cues, uid, step_text=""):
     slow, fast = s.get("slow", 4.6), s.get("fast", 2.2); T = slow + fast; k = slow / T
     sp = s.get("split", .5)
     # fit: the drawing spans ~70% of the card width, centred in the space under the top chips
-    x0, y0, x1, y1 = _bbox(s); sc = min(0.70 * 720 / (x1 - x0), 760 / (y1 - y0), 1.8)
-    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    x0, y0, x1, y1 = _bbox(s); sc = min(0.70 * 720 / (x1 - x0), (820 - 215) / (y1 - y0), 1.8)   # drawing lives in y 215-820 (safe when the app crops to a square-ish card)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; CY = 518
     def fits(k):
         for (_, x, y, _p, side) in s["hands"]:
             bx, by = chip_box(x, y, side)
             for (px, py) in ((bx, by), (bx + CHIP_W, by + CHIP_H)):
-                X, Y = 360 + (px - cx) * k, 508 + (py - cy) * k
-                if not (12 <= X <= 708 and 160 <= Y <= 888): return False
+                X, Y = 360 + (px - cx) * k, CY + (py - cy) * k
+                if not (12 <= X <= 708 and 215 <= Y <= 820): return False
         return True
     while sc > 0.6 and not fits(sc): sc -= 0.02
     o = []
-    o.append(f'<svg class="dg" viewBox="0 0 720 900" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated diagram, top-down view: {E(step_text)}. Cues: {E(cues)}">')
+    o.append(f'<svg class="dg" viewBox="0 0 720 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated diagram, top-down view: {E(step_text)}. Cues: {E(cues)}">')
     o.append(f'<defs><pattern id="ht{uid}" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="9" cy="9" r="3.2" fill="#7a2c00" opacity=".16"/></pattern>'
              f'<radialGradient id="vg{uid}" cx="50%" cy="50%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".22"/></radialGradient></defs>')
     o.append(f'<rect width="720" height="900" fill="{OR}"/><rect width="720" height="900" fill="url(#ht{uid})"/>')
-    o.append(f'<g fill="none" stroke="{CREAM}" stroke-width="7" opacity=".45"><circle cx="360" cy="500" r="270"/><path d="M0 120H720M40 0V900M680 0V900"/></g>')
+    o.append(f'<g fill="none" stroke="{CREAM}" stroke-width="7" opacity=".45"><circle cx="360" cy="500" r="270"/><path d="M0 200H720M40 0V900M680 0V900"/></g>')
     o.append(f'<rect width="720" height="900" fill="url(#vg{uid})"/>')
-    o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="28" fill="{INK}" text-anchor="middle"><path d="M360 128l16 22h-32z"/><text x="360" y="118" letter-spacing="3">FRONT</text></g>')
-    o.append(f'<g transform="translate(360 {508}) scale({sc:.3f}) translate({-cx:.1f} {-cy:.1f})">')
+    o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="28" fill="{INK}" text-anchor="middle"><path d="M360 182l16 22h-32z"/><text x="360" y="172" letter-spacing="3">FRONT</text></g>')
+    o.append(f'<g transform="translate(360 {CY}) scale({sc:.3f}) translate({-cx:.1f} {-cy:.1f})">')
     o.append(f'<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="{s["path"]}" stroke="{INK}" stroke-width="20" opacity=".9"/>'
              f'<path d="{s["path"]}" stroke="{WHITE}" stroke-width="8" stroke-dasharray="22 16" opacity=".85"/></g>')
     for (x, y) in FEET.values():   # plain sneakers, no letters
@@ -141,10 +141,10 @@ def diagram(mid, step, cues, uid, step_text=""):
     o.append("</g>")
     # top chips: tag (starts at x=168, clear of the app's step-number badge) + speed (right)
     o.append(f'<g font-family="Anton,Impact,sans-serif" font-size="30" letter-spacing="2">'
-             f'<rect x="168" y="24" width="{min(272, 30 + 14 * len(s["tag"]))}" height="54" rx="27" fill="{INK}"/><text x="183" y="60" font-size="25" fill="{WHITE}">{E(s["tag"])}</text>'
-             f'<g><rect x="452" y="24" width="244" height="54" rx="27" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>'
-             f'<text x="574" y="62" text-anchor="middle" fill="{INK}">🐢 SLOW FIRST<animate attributeName="opacity" values="1;0;1" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>'
-             f'<text x="574" y="62" text-anchor="middle" fill="{OR}" opacity="0">🐇 GAME SPEED<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text></g></g>')
+             f'<rect x="168" y="82" width="{min(272, 30 + 14 * len(s["tag"]))}" height="54" rx="27" fill="{INK}"/><text x="183" y="118" font-size="25" fill="{WHITE}">{E(s["tag"])}</text>'
+             f'<g><rect x="452" y="82" width="244" height="54" rx="27" fill="{WHITE}" stroke="{INK}" stroke-width="5"/>'
+             f'<text x="574" y="120" text-anchor="middle" fill="{INK}">🐢 SLOW FIRST<animate attributeName="opacity" values="1;0;1" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text>'
+             f'<text x="574" y="120" text-anchor="middle" fill="{OR}" opacity="0">🐇 GAME SPEED<animate attributeName="opacity" values="0;1;0" keyTimes="0;{k:.4f};1" calcMode="discrete" dur="{T:.2f}s" repeatCount="indefinite"/></text></g></g>')
     o.append("</svg>")
     return "".join(o)
 

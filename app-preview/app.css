@@ -164,3 +164,16 @@ details.kid p{margin:6px 0 0}
 .big.share{background:var(--or);color:var(--ink)}.celebrate .big.share{background:var(--ink);color:var(--or)}
 
 .media svg.dg{width:100%;height:100%;display:block}
+/* diagram steps: full-width card (about 92vw), up to 45vh; compact counter so it and Next stay on screen */
+.media.dgm{width:min(92vw,480px);max-width:none;aspect-ratio:auto;height:min(45vh,115vw);max-height:none;margin-left:50%;transform:translateX(-50%)}
+.hasdg .stepname{margin-top:8px}
+.hasdg h2,.hasdg .steptext{font-size:22px}
+.hasdg .counter{margin-top:8px;padding:8px 10px;gap:10px;border-radius:20px}
+.hasdg .pad{width:100px;height:100px}.hasdg .pad .num{font-size:42px}.hasdg .pad .of{bottom:20px;font-size:11px}
+.hasdg .hint{font-size:15px}.hasdg .btns button{min-height:34px;padding:0 10px;font-size:13px}
+.slide.hasdg{overflow-x:hidden}
+.hasdg .note{display:none}  /* the diagram card carries the SLOW FIRST -> GAME SPEED badge */
+.hasdg .cue{margin-top:8px;padding:8px 12px;font-size:15px}
+.hasdg .steptext{margin:2px 0 0;line-height:1.2}
+.hasdg .stepname{margin:6px 0 2px}.hasdg .steptext{font-size:21px}.hasdg .cue{padding:6px 12px;margin-top:6px}
+.hasdg .counter{padding:6px 10px}.hasdg .pad{width:90px;height:90px}.hasdg .pad .num{font-size:38px}.hasdg .pad .of{bottom:16px}
