@@ -1,215 +1,136 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Handles Lab · Free 30-Day Dribbling Challenge</title>
-<meta name="description" content="Master your handles one move a day. Step-by-step dribbling breakdowns and a free 30-day at-home dribbling challenge. Just you and a ball.">
-<meta name="theme-color" content="#F77914">
-<link rel="icon" href="favicon.png" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="description" content="A free, at-home 30-day dribbling challenge for kids and grown-ups. One move a day, four steps, just a ball. Start Day 1 now.">
 <link rel="canonical" href="https://handleslab.com/">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://handleslab.com/">
-<meta property="og:title" content="Handles Lab · Free 30-Day Dribbling Challenge">
-<meta property="og:description" content="One new dribble move a day, broken into Step 1, 2, 3. At home. Just a ball.">
-<meta property="og:image" content="https://handleslab.com/og.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@handleslab">
-<link rel="preload" href="luckiest.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="anton.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="hero.webp" as="image">
-<style>
-@font-face{font-family:"Lucky";src:url(luckiest.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"Anton";src:url(anton.woff2) format("woff2");font-display:swap}
-:root{--o:#F77914;--o2:#FF9A3D;--od:#C95A00;--ink:#0E0E10;--ink2:#18181B;--ink3:#26262B;--w:#fff;--mute:#A1A1AA;--r:22px;--max:1120px}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{background:var(--ink);color:var(--w);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-img{display:block;max-width:100%;height:auto}
-a{color:inherit}
-.wrap{width:min(var(--max),100% - 40px);margin-inline:auto}
-.display{font-family:"Lucky",Impact,sans-serif;letter-spacing:.01em;line-height:.95;text-transform:uppercase}
-.label{font-family:"Anton",Impact,sans-serif;text-transform:uppercase;letter-spacing:.06em}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:0 28px;border-radius:999px;background:var(--ink);color:var(--o);font-family:"Anton",Impact,sans-serif;font-size:20px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:0;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 8px 0 rgba(0,0,0,.25)}
-.btn:hover{transform:translateY(-2px)}
-.btn:active{transform:translateY(2px);box-shadow:0 3px 0 rgba(0,0,0,.25)}
-.btn.alt{background:var(--o);color:var(--ink)}
-/* nav */
-.nav{position:sticky;top:0;z-index:10;background:rgba(14,14,16,.86);backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid #222}
-.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand img{width:36px;height:36px;border-radius:50%;border:2px solid var(--o)}
-.brand span{font-family:"Lucky",Impact,sans-serif;font-size:22px;letter-spacing:.02em}
-.nav .btn{min-height:40px;padding:0 18px;font-size:15px;box-shadow:none;background:var(--o);color:var(--ink)}
-/* hero */
-.hero{position:relative;overflow:hidden;background:var(--o) radial-gradient(rgba(0,0,0,.09) 1.6px,transparent 1.7px) 0 0/16px 16px}
-.hero .wrap{display:grid;grid-template-columns:1fr;gap:8px;padding:36px 0 0}
-.pill{display:inline-block;align-self:start;justify-self:start;background:var(--ink);color:var(--o);padding:8px 16px;border-radius:999px;font-size:14px}
-.hero h1{font-size:clamp(54px,15vw,112px);color:var(--w);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);margin:14px 0 10px}
-.hero h1 em{font-style:normal;color:var(--ink);-webkit-text-stroke:0;text-shadow:none;display:block}
-.hero p.lead{font-size:clamp(18px,4.6vw,22px);color:var(--ink);font-weight:650;max-width:30ch}
-.hero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0 6px}
-.hero .meta{display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--ink);font-size:15px;margin-top:8px}
-.hero .meta b{font-family:"Anton",Impact,sans-serif;font-weight:400;letter-spacing:.04em}
-.hero figure{margin:10px auto 0;width:min(440px,92%);aspect-ratio:9/14;overflow:hidden;-webkit-mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 62%,transparent 100%);mask-image:radial-gradient(ellipse 72% 70% at 50% 46%,#000 62%,transparent 100%)}
-.hero figure img{width:100%;height:auto;margin-top:-4%}
-/* sections */
-section{padding:72px 0}
-.kicker{color:var(--o);font-size:15px;margin-bottom:10px}
-h2{font-size:clamp(38px,9vw,64px);margin-bottom:14px}
-.sub{color:var(--mute);font-size:18px;max-width:52ch}
-.how{display:grid;gap:14px;margin-top:30px}
-.card{background:var(--ink2);border:1px solid var(--ink3);border-radius:var(--r);padding:24px}
-.card .n{font-family:"Lucky",Impact,sans-serif;font-size:44px;color:var(--o);line-height:1}
-.card h3{font-family:"Anton",Impact,sans-serif;font-weight:400;font-size:24px;letter-spacing:.03em;text-transform:uppercase;margin:10px 0 6px}
-.card p{color:var(--mute)}
-/* day 1 */
-.day1{background:var(--ink2)}
-.rail{display:grid;grid-auto-flow:column;grid-auto-columns:78%;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 20px 18px;margin:28px -20px 0;scrollbar-width:none}
-.rail::-webkit-scrollbar{display:none}
-.rail figure{scroll-snap-align:center;border-radius:var(--r);overflow:hidden;border:3px solid var(--ink);box-shadow:0 0 0 2px var(--o)}
-.rail figure img{aspect-ratio:9/16;width:100%;object-fit:cover}
-.swipe{color:var(--mute);font-size:14px;margin-top:6px}
-.cues{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
-.cues span{background:var(--ink3);border-radius:999px;padding:8px 14px;font-size:14px}
-/* plan */
-.weeks{display:grid;gap:12px;margin-top:28px}
-.week{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:baseline;padding:18px 20px;border-radius:var(--r);background:var(--ink2);border:1px solid var(--ink3)}
-.week .d{font-family:"Anton",Impact,sans-serif;color:var(--o);font-size:20px;letter-spacing:.04em;min-width:96px}
-.week b{font-weight:700}
-.week p{grid-column:2;color:var(--mute);font-size:15px}
-ol.days{list-style:none;display:grid;gap:8px;margin-top:22px;counter-reset:d}
-ol.days li{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:var(--ink2)}
-ol.days li::before{counter-increment:d;content:counter(d);flex:0 0 40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--o);color:var(--ink);font-family:"Anton",Impact,sans-serif;font-size:18px}
-/* signup */
-.signup{background:var(--o) radial-gradient(rgba(0,0,0,.09) 1.6px,transparent 1.7px) 0 0/16px 16px;color:var(--ink)}
-.signup h2{color:var(--w);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink)}
-.signup .sub{color:var(--ink);font-weight:600}
-form{display:grid;gap:12px;margin-top:26px;max-width:520px}
-label.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-input[type=email],input[type=text]{width:100%;min-height:58px;border-radius:16px;border:3px solid var(--ink);padding:0 18px;font:600 18px/1 system-ui,-apple-system,sans-serif;color:var(--ink);background:#fff}
-input:focus{outline:3px solid var(--w);outline-offset:2px}
-.fine{font-size:13px;color:#3a2410}
-.thanks{display:none;margin-top:18px;background:var(--ink);color:var(--w);padding:16px 20px;border-radius:16px;font-weight:600}
-.thanks:target{display:block}
-/* socials */
-.socials{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:26px}
-.socials a{display:flex;align-items:center;gap:12px;padding:16px;border-radius:18px;background:var(--ink2);border:1px solid var(--ink3);text-decoration:none;transition:border-color .15s}
-.socials a:hover{border-color:var(--o)}
-.socials svg{width:26px;height:26px;fill:var(--o);flex:none}
-.socials small{display:block;color:var(--mute);font-size:13px}
-.socials strong{font-size:15px}
-footer{padding:36px 0 48px;color:var(--mute);font-size:14px;border-top:1px solid #222}
-footer .wrap{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between}
-@media(min-width:760px){
- .hero .wrap{grid-template-columns:1.1fr .9fr;align-items:center;padding:56px 0 0}
- .hero figure{grid-row:1/6;grid-column:2;margin:0 0 0 auto;width:100%}
- .how{grid-template-columns:repeat(3,1fr)}
- .rail{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible;margin:28px 0 0;padding:0}
- .swipe{display:none}
- .weeks{grid-template-columns:repeat(2,1fr)}
- ol.days{grid-template-columns:repeat(2,1fr)}
- .socials{grid-template-columns:repeat(4,1fr)}
- section{padding:96px 0}
-}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
-</style>
-</head>
-<body>
-<nav class="nav"><div class="wrap">
- <a class="brand" href="#top"><img src="avatar.jpg" width="36" height="36" alt=""><span>HANDLES LAB</span></a>
- <a class="btn" href="#join">Start free</a>
-</div></nav>
-
-<header class="hero" id="top"><div class="wrap">
- <span class="pill label">Free 30-Day Dribbling Challenge</span>
- <h1 class="display">Master your handles.<em>One move a day.</em></h1>
- <p class="lead">Every dribble move, broken into Step&nbsp;1, 2, 3. Ten minutes a day at home. Just you and a ball.</p>
- <div class="ctas"><a class="btn" href="#join">Start Day 1 free →</a><a class="btn alt" href="#day1" style="box-shadow:inset 0 0 0 3px var(--ink)">See Day 1</a></div>
- <div class="meta"><span><b>30</b> days</span><span><b>1</b> new move a day</span><span><b>0</b> gear but a ball</span></div>
- <figure><img src="hero.webp" width="720" height="1280" alt="Handles Lab's faceless hooper spinning a basketball on one finger" fetchpriority="high"></figure>
+<meta name="theme-color" content="#0e0e10">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Handles Lab">
+<meta property="og:title" content="Handles Lab · Free 30-Day Dribbling Challenge"><meta property="og:description" content="A free, at-home 30-day dribbling challenge for kids and grown-ups. One move a day, four steps, just a ball. Start Day 1 now.">
+<meta property="og:url" content="https://handleslab.com/"><meta property="og:image" content="https://handleslab.com/assets/img/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Handles Lab: free 30-day dribbling challenge">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:site" content="@handleslab">
+<meta name="twitter:title" content="Handles Lab · Free 30-Day Dribbling Challenge"><meta name="twitter:description" content="A free, at-home 30-day dribbling challenge for kids and grown-ups. One move a day, four steps, just a ball. Start Day 1 now.">
+<meta name="twitter:image" content="https://handleslab.com/assets/img/og.jpg">
+<link rel="icon" href="/assets/img/icon-32.png" sizes="32x32"><link rel="apple-touch-icon" href="/assets/img/icon-180.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/assets/fonts/luckiest-guy-400.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/anton-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+</head><body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav"><div class="wrap">
+<a class="brand" href="/"><img src="/assets/img/icon-180.png" alt="" width="34" height="34">Handles Lab</a>
+<nav aria-label="Main"><ul><li><a href="/#days">The 30 days</a></li><li><a href="/#how">How a day works</a></li><li><a href="/#parents">For parents</a></li><li><a href="/#app">The app</a></li></ul></nav>
+<a class="btn sm" href="/day/1/">Start Day 1 free</a>
 </div></header>
 
-<main>
-<section id="how"><div class="wrap">
- <p class="kicker label">How it works</p>
- <h2 class="display">Built like a video game.</h2>
- <p class="sub">Every move is broken down into levels. Lock in Step 1, then level up. By Day 30 you're chaining combos.</p>
- <div class="how">
-  <div class="card"><div class="n">01</div><h3>Watch the move</h3><p>A short clip shows the move from Level 1 to full speed, so you can see exactly where you're headed.</p></div>
-  <div class="card"><div class="n">02</div><h3>Do Step 1, 2, 3</h3><p>Each step builds on the last, with simple cues like “fingertips, not palm” and “eyes up.”</p></div>
-  <div class="card"><div class="n">03</div><h3>Stack it daily</h3><p>Warm up with the last three days, then add the new move. Small daily reps turn into real handles.</p></div>
- </div>
+<main id="main">
+<section class="hero" style="border:0"><div class="wrap">
+<div>
+<span class="kicker">Free 30-day dribbling challenge</span>
+<h1>Master your handles.<em>One move a day.</em></h1>
+<p class="lead">A free 30-day at-home dribbling challenge. Every move is broken into four steps, from easy to game speed. Ten to fifteen minutes a day. Just you and a ball.</p>
+<div class="ctas"><a class="btn" href="/day/1/">Start Day 1 free →</a><a class="btn ghost" href="#days">See all 30 days</a></div>
+<ul class="facts"><li>100% free</li><li>10-15 minutes a day</li><li>Kid tips every day</li><li>No sign-up needed</li></ul>
+</div>
+<div class="hero-art"><img src="/assets/img/hero.webp" width="720" height="1280" alt="The Handles Lab athlete: a faceless white comic-style player spinning a basketball on one finger" fetchpriority="high">
+<span class="badge">Day 1 → Day 30</span></div>
 </div></section>
 
-<section class="day1" id="day1"><div class="wrap">
- <p class="kicker label">Day 1 preview</p>
- <h2 class="display">Stance + pound dribble</h2>
- <p class="sub">The base every move starts from. Do 3 sets with each hand and you've finished Day 1.</p>
- <div class="rail">
-  <figure><img src="day1-1-step1-stance.webp" width="540" height="960" loading="lazy" alt="Step 1: athletic stance. Feet wide, sit like a chair, hold 5 seconds, 5 reps"></figure>
-  <figure><img src="day1-2-step2-pound-right.webp" width="540" height="960" loading="lazy" alt="Step 2: pound right. Right hand, knee high, 20 hard pounds, 3 sets"></figure>
-  <figure><img src="day1-3-step3-pound-left.webp" width="540" height="960" loading="lazy" alt="Step 3: pound left. Left hand, then ankle high, 20 hard pounds, 3 sets"></figure>
- </div>
- <p class="swipe">Swipe →</p>
- <div class="cues"><span>Warm-up: ball slaps ×10</span><span>Fingertips, not palm</span><span>Pound it hard</span><span>Eyes up</span><span>Ball + 3×3 ft of space</span></div>
+<section id="levels"><div class="wrap">
+<div class="sec-head"><span class="kicker">How it works</span><h2>Built like a video game.</h2>
+<p>Every move is broken into levels. Lock in Step 1, then level up. By Day 30 you're chaining combos.</p></div>
+<div class="grid g3">
+<div class="card"><span class="n">01</span><h3>Warm up</h3><p>2-3 minutes reviewing the last three days' moves, so nothing you learned fades.</p></div>
+<div class="card"><span class="n">02</span><h3>Step 1 → Step 4</h3><p>Today's new move in four steps, 3 sets with each hand. Move up only when the step before feels easy.</p></div>
+<div class="card"><span class="n">03</span><h3>Say the cues</h3><p>Three short cues per move, like "fingertips not palm" and "eyes up". Kids say them out loud.</p></div>
+</div></div></section>
+
+<section id="days"><div class="wrap">
+<div class="sec-head"><span class="kicker">The plan</span><h2>What the 30 days look like</h2>
+<p>Every move builds on one you already learned, so the order matters. You start standing still and finish chaining five moves at speed.</p></div>
+<div class="grid g4"><div class="card phase"><span class="days">Days 1-9</span><h3>Stationary</h3><p>Ball control without moving your feet. Pound, V-dribbles, wraps, crossover, through the legs, behind the back. No space needed.</p></div><div class="card phase"><span class="days">Days 10-14</span><h3>On the move</h3><p>Take it into a hallway or driveway: speed and control dribbles, the crossover on the move, hesitation, in-and-out, change of pace.</p></div><div class="card phase"><span class="days">Days 15-27</span><h3>Level up</h3><p>Harder moves and your first combos: between the legs and behind the back on the move, hang, snatch back, spin, shake and bake.</p></div><div class="card phase"><span class="days">Days 28-30</span><h3>Chains</h3><p>String it all together into nonstop chains, then the Day 30 gauntlet. Film it and compare it to Day 1.</p></div></div>
+<div style="margin-top:36px"><ol class="map" aria-label="30-day progress map"><li><a href="/day/1/" data-day="1" data-ph="1" title="Day 1: Stance + pound dribble">1<small>Pound</small></a></li><li><a href="/day/2/" data-day="2" data-ph="1" title="Day 2: Pound ladder: high, middle, low">2<small>Ladder</small></a></li><li><a href="/day/3/" data-day="3" data-ph="1" title="Day 3: V-dribbles, front and side">3<small>V-dribble</small></a></li><li><a href="/day/4/" data-day="4" data-ph="1" title="Day 4: Ball wraps + figure-8 wrap">4<small>Wraps</small></a></li><li><a href="/day/5/" data-day="5" data-ph="1" title="Day 5: The pretzel">5<small>Pretzel</small></a></li><li><a href="/day/6/" data-day="6" data-ph="1" title="Day 6: Stationary crossover + kill dribble">6<small>Cross</small></a></li><li><a href="/day/7/" data-day="7" data-ph="1" title="Day 7: Between the legs (stationary)">7<small>Thru</small></a></li><li><a href="/day/8/" data-day="8" data-ph="1" title="Day 8: Behind the back (stationary)">8<small>Behind</small></a></li><li><a href="/day/9/" data-day="9" data-ph="1" title="Day 9: Figure-8 dribble + ricochet">9<small>Figure-8</small></a></li><li><a href="/day/10/" data-day="10" data-ph="2" title="Day 10: On the move: speed, control, jump stop">10<small>Move</small></a></li><li><a href="/day/11/" data-day="11" data-ph="2" title="Day 11: Crossover on the move">11<small>Cross</small></a></li><li><a href="/day/12/" data-day="12" data-ph="2" title="Day 12: Hesitation / rocker">12<small>Hesi</small></a></li><li><a href="/day/13/" data-day="13" data-ph="2" title="Day 13: In-and-out">13<small>In-out</small></a></li><li><a href="/day/14/" data-day="14" data-ph="2" title="Day 14: Change of pace + stutter step">14<small>Pace</small></a></li><li><a href="/day/15/" data-day="15" data-ph="3" title="Day 15: First combos: hesi-cross, stutter-cross">15<small>Combos</small></a></li><li><a href="/day/16/" data-day="16" data-ph="3" title="Day 16: The skip dribble">16<small>Skip</small></a></li><li><a href="/day/17/" data-day="17" data-ph="3" title="Day 17: Between the legs on the move">17<small>Thru</small></a></li><li><a href="/day/18/" data-day="18" data-ph="3" title="Day 18: Killer crossover">18<small>Killer</small></a></li><li><a href="/day/19/" data-day="19" data-ph="3" title="Day 19: Behind the back on the move">19<small>Behind</small></a></li><li><a href="/day/20/" data-day="20" data-ph="3" title="Day 20: Double crossover + in-and-out cross">20<small>Double</small></a></li><li><a href="/day/21/" data-day="21" data-ph="3" title="Day 21: Hesi-hold crossover">21<small>Hold</small></a></li><li><a href="/day/22/" data-day="22" data-ph="3" title="Day 22: Hang dribble">22<small>Hang</small></a></li><li><a href="/day/23/" data-day="23" data-ph="3" title="Day 23: Retreat dribble + snatch back">23<small>Snatch</small></a></li><li><a href="/day/24/" data-day="24" data-ph="3" title="Day 24: Front pivot + spin move">24<small>Spin</small></a></li><li><a href="/day/25/" data-day="25" data-ph="3" title="Day 25: Half spin + cross into spin">25<small>Half spin</small></a></li><li><a href="/day/26/" data-day="26" data-ph="3" title="Day 26: Shake and bake">26<small>Shake</small></a></li><li><a href="/day/27/" data-day="27" data-ph="3" title="Day 27: Push-pull crossover">27<small>Push-pull</small></a></li><li><a href="/day/28/" data-day="28" data-ph="4" title="Day 28: Combo chains: cross, thru, wrap">28<small>Chains</small></a></li><li><a href="/day/29/" data-day="29" data-ph="4" title="Day 29: Sequence + snatch-back crossover">29<small>Sequence</small></a></li><li><a href="/day/30/" data-day="30" data-ph="4" title="Day 30: Final gauntlet: film it, compare to Day 1">30<small>Final</small></a></li></ol><div class="legend"><span><i style="background:var(--ink2)"></i>Days 1-9 · Stationary</span><span><i style="background:#1d1712"></i>Days 10-14 · On the move</span><span><i style="background:#24170d"></i>Days 15-27 · Level up</span><span><i style="background:#2e1806"></i>Days 28-30 · Chains</span><span>✓ = done (saved on this device)</span></div></div>
 </div></section>
 
-<section id="plan"><div class="wrap">
- <p class="kicker label">The 30-day plan</p>
- <h2 class="display">From pound dribble to combo chains</h2>
- <p class="sub">Dribbling only. Every move builds on the ones before it.</p>
- <div class="weeks">
-  <div class="week"><span class="d">Days 1–9</span><b>Stationary control</b><p>Pound dribbles, V-dribbles, wraps, the Maravich pretzel, crossovers, between the legs, behind the back.</p></div>
-  <div class="week"><span class="d">Days 10–14</span><b>On the move</b><p>Speed and control dribbles, crossover, hesitation, in-and-out, change of pace.</p></div>
-  <div class="week"><span class="d">Days 15–27</span><b>Legend moves + first combos</b><p>Hesi-cross, Skip to My Lou, the killer crossover, Kyrie-style spin, shake and bake.</p></div>
-  <div class="week"><span class="d">Days 28–30</span><b>Combo chains</b><p>String it all together, film it, and compare it to your Day 1.</p></div>
- </div>
- <ol class="days" aria-label="Week 1">
-  <li>Stance + pound dribble, each hand</li>
-  <li>Pound ladder: high / middle / low</li>
-  <li>V-dribbles, front and side</li>
-  <li>Ball wraps + figure-8 wrap</li>
-  <li>The Maravich pretzel</li>
-  <li>Stationary crossover + kill dribble</li>
-  <li>Stationary between the legs</li>
- </ol>
+<section id="how"><div class="wrap split">
+<div>
+<div class="sec-head"><span class="kicker">How a day works</span><h2>Warm up. Four steps. Three cues.</h2>
+<p>Each day starts with 2-3 minutes reviewing the last few days' moves. Then the new move, from Step 1 to Step 4: 3 sets with each hand. Only move up a step when the one before feels easy.</p></div>
+<p class="kicker" style="margin:0 0 10px">Example: Day 1 · Pound dribble</p>
+<ol class="steps"><li><div><b>Step 1</b>Right hand, knee-high pound x20</div></li><li><div><b>Step 2</b>Left hand x20</div></li><li><div><b>Step 3</b>Ankle-high pound, each hand</div></li><li><div><b>Step 4</b>Pound while counting fingers a coach holds up (eyes up)</div></li></ol>
+<div class="cues"><span>Cues</span><span>Fingertips not palm; pound it hard; eyes up</span></div>
+<p style="color:var(--mute);margin-top:22px"><b style="color:#fff">Gear:</b> a ball. Later days add 1-3 chairs or cones and about 20 ft of hallway or driveway. No hoop needed: this challenge is dribbling only.</p>
+</div>
+<figure class="shots" style="margin:0" aria-label="Day 1 lesson cards">
+<div><picture><source srcset="/assets/img/day1-stance.webp" type="image/webp"><img src="/assets/img/day1-stance.jpg" width="540" height="960" loading="lazy" alt="Day 1 card: athletic stance, feet wide, sit like a chair"></picture><figcaption>Stance</figcaption></div>
+<div><picture><source srcset="/assets/img/day1-pound-right.webp" type="image/webp"><img src="/assets/img/day1-pound-right.jpg" width="540" height="960" loading="lazy" alt="Day 1 card: pound dribble with the right hand, knee high"></picture><figcaption>Pound right</figcaption></div>
+<div><picture><source srcset="/assets/img/day1-pound-left.webp" type="image/webp"><img src="/assets/img/day1-pound-left.jpg" width="540" height="960" loading="lazy" alt="Day 1 card: pound dribble with the left hand"></picture><figcaption>Pound left</figcaption></div>
+</figure>
 </div></section>
 
-<section class="signup" id="join"><div class="wrap">
- <h2 class="display">Start the challenge free</h2>
- <p class="sub">Drop your email to get the full 30-day plan and a new move every day. No spam. Unsubscribe anytime.</p>
- <form action="https://formsubmit.co/handleslab@mail.grokbot.com" method="POST">
-  <input type="hidden" name="_subject" value="New Handles Lab challenge signup">
-  <input type="hidden" name="_next" value="https://handleslab.com/#thanks">
-  <input type="hidden" name="_template" value="table">
-  <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
-  <label class="vh" for="name">First name</label>
-  <input id="name" type="text" name="name" placeholder="First name (optional)" autocomplete="given-name">
-  <label class="vh" for="email">Email</label>
-  <input id="email" type="email" name="email" placeholder="you@email.com" required autocomplete="email" inputmode="email">
-  <button class="btn" type="submit">Send me Day 1 →</button>
-  <p class="fine">Under 13? Have a parent sign up for you.</p>
- </form>
- <div class="thanks" id="thanks">You're in. Day 1 is above, so go grab a ball. 🏀</div>
+<section id="parents" class="parents"><div class="wrap split">
+<div class="sec-head"><span class="kicker">For kids & parents</span><h2>Built so a 7-year-old can start on Day 1</h2>
+<p>Every move is rated 1 to 5 and every day has a kid version: a simpler way in, often a game. Parents don't need to know basketball. Read the steps out loud and play the defender when a day asks for one.</p>
+<p><a class="btn" href="/day/1/" style="margin-top:14px">Try Day 1 together</a></p></div>
+<ul class="tips">
+<li><b>Right-size the ball.</b> Size 4 or 5 youth ball; count out loud.</li>
+<li><b>Make it a game.</b> Day 1 stance: "Make it &#x27;Statue&#x27; game: freeze in stance on &#x27;freeze&#x27;." Day 12 hesitation: Red-light/green-light.</li>
+<li><b>Quiet indoor option.</b> Day 2 seated dribbling: Perfect for indoors (quiet).</li>
+<li><b>You're the defender.</b> Day 10 control dribble: Parent gently reaches for the ball.</li>
+<li><b>Slow is fine.</b> Harder days tell kids to stop at Step 2 or 3, or walk it through. Going slower beats getting sloppy.</li>
+</ul>
 </div></section>
 
-<section id="follow"><div class="wrap">
- <p class="kicker label">New move every day</p>
- <h2 class="display">Follow the lab</h2>
- <div class="socials">
-  <a href="https://www.tiktok.com/@thehandleslab" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.8 5.8 0 1 0 5 5.7V9.1a7.4 7.4 0 0 0 4.3 1.4V7.4a4.3 4.3 0 0 1-3.3-1.6z"/></svg><span><strong>TikTok</strong><small>@thehandleslab</small></span></a>
-  <a href="https://www.instagram.com/thehandleslab" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7.3a4.7 4.7 0 1 0 0 9.4 4.7 4.7 0 0 0 0-9.4zm0 7.7a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm6-7.9a1.1 1.1 0 1 1-2.2 0 1.1 1.1 0 0 1 2.2 0zM21.9 8.2c-.1-1.6-.4-3-1.6-4.2S17.6 2.5 16 2.4C14.3 2.3 9.7 2.3 8 2.4c-1.6.1-3 .4-4.2 1.6S2.3 6.6 2.2 8.2c-.1 1.7-.1 6.3 0 8 .1 1.6.4 3 1.6 4.2s2.6 1.5 4.2 1.6c1.7.1 6.3.1 8 0 1.6-.1 3-.4 4.2-1.6s1.5-2.6 1.6-4.2c.1-1.7.1-6.3 0-8zm-2.2 9.8a3.2 3.2 0 0 1-1.8 1.8c-1.3.5-4.3.4-5.7.4s-4.4.1-5.7-.4A3.2 3.2 0 0 1 4.7 18c-.5-1.3-.4-4.3-.4-5.7s-.1-4.4.4-5.7a3.2 3.2 0 0 1 1.8-1.8c1.3-.5 4.3-.4 5.7-.4s4.4-.1 5.7.4a3.2 3.2 0 0 1 1.8 1.8c.5 1.3.4 4.3.4 5.7s.1 4.4-.4 5.7z"/></svg><span><strong>Instagram</strong><small>@thehandleslab</small></span></a>
-  <a href="https://www.youtube.com/@HandlesLab" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2 31 31 0 0 0 .5 12a31 31 0 0 0 .5 4.8 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1 31 31 0 0 0 .5-4.8 31 31 0 0 0-.5-4.8zM9.7 15V9l5.8 3-5.8 3z"/></svg><span><strong>YouTube</strong><small>@HandlesLab</small></span></a>
-  <a href="https://x.com/handleslab" rel="noopener" target="_blank"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L1.8 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg><span><strong>X</strong><small>@handleslab</small></span></a>
- </div>
+<section id="inbox"><div class="wrap">
+<div class="signup">
+<div><span class="kicker" style="color:var(--ink)">Optional</span><h2>Get each day in your inbox</h2>
+<p>One short email per day with that day's move. No spam, unsubscribe anytime. Prefer not to? Every day is open on the site, no sign-up needed.</p></div>
+<div><form class="su-form" data-signup="challenge" novalidate>
+<label class="sr" for="su-challenge-name">First name (optional)</label>
+<input id="su-challenge-name" type="text" name="name" autocomplete="given-name" placeholder="First name (optional)">
+<label class="sr" for="su-challenge">Email address</label>
+<input id="su-challenge" type="email" name="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required>
+<span class="hp" aria-hidden="true"><input class="hpi" type="text" name="_honey" tabindex="-1" autocomplete="off"></span>
+<button class="btn" type="submit">Send me Day 1</button>
+<p class="su-fine">Under 13? Have a parent sign up for you. No spam, unsubscribe anytime.</p>
+<p class="su-note" role="status" aria-live="polite"></p>
+</form></div>
+</div></div></section>
+
+<section id="app"><div class="wrap split">
+<div class="sec-head"><span class="kicker">Coming next</span><h2>The Handles Lab app</h2>
+<p>We're building an app version of the challenge for after Day 30, with more moves and lessons and practice plans for each player.
+Join the waitlist to hear when it opens. Founding price: <b style="color:#fff">$29.99 for the first year</b> for people on the waitlist. The 30-day challenge stays free.</p></div>
+<div class="card"><h3>Join the app waitlist</h3><p style="margin-bottom:16px">One email when the app is ready. That's it.</p><form class="su-form" data-signup="waitlist" novalidate>
+<label class="sr" for="su-waitlist-name">First name (optional)</label>
+<input id="su-waitlist-name" type="text" name="name" autocomplete="given-name" placeholder="First name (optional)">
+<label class="sr" for="su-waitlist">Email address</label>
+<input id="su-waitlist" type="email" name="email" autocomplete="email" inputmode="email" placeholder="you@email.com" required>
+<span class="hp" aria-hidden="true"><input class="hpi" type="text" name="_honey" tabindex="-1" autocomplete="off"></span>
+<button class="btn" type="submit">Join the waitlist</button>
+<p class="su-fine">Under 13? Have a parent sign up for you. No spam, unsubscribe anytime.</p>
+<p class="su-note" role="status" aria-live="polite"></p>
+</form></div>
 </div></section>
+
+<section id="faq"><div class="wrap" style="max-width:820px">
+<div class="sec-head"><span class="kicker">FAQ</span><h2>Questions</h2></div>
+<details><summary>Is it really free?</summary><p>Yes. All 30 days are on this site, free, with no account. The paid app is a separate, optional product for later.</p></details>
+<details><summary>What age is it for?</summary><p>Anyone who can bounce a ball. Days 1-9 are level 1-2 moves a young kid can start with; every day includes a kid version. Later days go up to level 4-5 for older players.</p></details>
+<details><summary>Do I need a hoop or a court?</summary><p>No. It's dribbling only. Days 1-9 need about a 3x3 ft spot; later days use 1-3 chairs or cones and up to 20 ft of hallway or driveway.</p></details>
+<details><summary>What if we miss a day or a move is too hard?</summary><p>Repeat the day. Stay on Step 1 or 2 until it feels easy. The challenge is 30 lessons, not 30 calendar days.</p></details>
+<details><summary>How do I track progress?</summary><p>Tap "Mark day done" at the bottom of each day. It's saved in your browser on that device, and the 30-day map shows a ✓ on finished days.</p></details>
+</div></section>
+
+<section style="text-align:center"><div class="wrap"><h2>Day 1 takes 10 minutes.</h2><p class="lead" style="margin:16px auto 26px">Stance and the pound dribble. Grab a ball.</p><a class="btn" href="/day/1/">Start Day 1 free →</a></div></section>
 </main>
-
 <footer><div class="wrap">
- <span>© 2026 Handles Lab · handleslab.com</span>
- <span>Not affiliated with the NBA or any team or brand. Player names describe move styles only.</span>
+<div><a class="brand" href="/"><img src="/assets/img/icon-180.png" alt="" width="34" height="34">Handles Lab</a>
+<p>The free 30-day at-home dribbling challenge.<br>Not affiliated with any league or team.</p></div>
+<nav aria-label="Social"><a href="https://www.tiktok.com/@thehandleslab">TikTok</a><a href="https://www.instagram.com/thehandleslab">Instagram</a><a href="https://x.com/handleslab">X</a><a href="https://www.youtube.com/@HandlesLab">YouTube</a></nav>
+<p>© 2026 Handles Lab · Practice safely: clear space, supervise young kids.</p>
 </div></footer>
-</body>
-</html>
+<script src="/assets/signup.js" defer></script><script src="/assets/progress.js" defer></script>
+</body></html>
