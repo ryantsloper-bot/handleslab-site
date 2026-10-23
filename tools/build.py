@@ -287,7 +287,7 @@ def landing():
 
 <section id="days"><div class="wrap">
 <div class="sec-head"><span class="kicker">The plan</span><h2>What the 30 days look like</h2>
-<p>Four levels: Level 1 of 4 · Beginner, Level 2 of 4 · Intermediate, Level 3 of 4 · Advanced, Level 4 of 4 · Elite. A day's level is set by its hardest move. Finish every day of one level to unlock the next. Every page stays open to preview.</p></div>
+<p>Four levels: Level 1 of 4 · Beginner, Level 2 of 4 · Intermediate, Level 3 of 4 · Advanced, Level 4 of 4 · Elite. A day's level is set by its hardest move. Finish every day of one level to unlock the next. New days unlock as you go.</p></div>
 <div class="grid g4">{phases}</div>
 <p style="color:var(--mute);font-size:15px;margin-top:16px">Where you'll train: {E(where)}.</p>
 <div class="statrow" data-stats hidden><span>🔥 Streak: <b data-streak>0</b> day(s)</span><span>✓ <b data-count>0</b>/30 done</span><span data-badges></span><a class="btn sm" data-today-link href="/day/1/">Go to today</a></div>
@@ -326,7 +326,7 @@ def landing():
 <section id="inbox"><div class="wrap">
 <div class="signup">
 <div><span class="kicker" style="color:var(--ink)">Optional</span><h2>Get each day in your inbox</h2>
-<p>One short email per day with that day's move. No spam, unsubscribe anytime. Prefer not to? Every day is open on the site, no sign-up needed.</p></div>
+<p>One short email per day with that day's move. No spam, unsubscribe anytime. Prefer not to? No sign-up needed. New days unlock as you go.</p></div>
 <div>{signup_form("challenge", "Send me Day 1")}</div>
 </div></div></section>
 
