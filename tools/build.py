@@ -447,7 +447,7 @@ def app_index():
 <div class="shell">
 <header class="top">
  <div class="brand"><img src="/assets/img/icon-180.png" alt="" width="30" height="30"><span>Handles Lab</span></div>
- <div class="top-r"><span class="chip" id="lvlchip">Beginner</span><span class="flame" id="streak" aria-label="Streak"><i>🔥</i><b>0</b></span></div>
+ <div class="top-r"><span class="chip" id="lvlchip">Beginner</span><button type="button" class="flame" id="streak" aria-label="Streak: open your streak"><i>🔥</i><b>0</b></button></div>
 </header>
 <main>
 <section class="panel" id="tab-today" aria-label="Today"></section>

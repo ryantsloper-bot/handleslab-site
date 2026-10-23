@@ -30,9 +30,41 @@
   /* ---------- header ---------- */
   function paintTop() {
     var s = streak(), f = $("#streak");
-    f.querySelector("b").textContent = s; f.classList.toggle("off", !s); f.setAttribute("aria-label", "Streak: " + s + " days");
+    f.querySelector("b").textContent = s; f.classList.toggle("off", !s); f.setAttribute("aria-label", "Streak: " + s + " day" + (s === 1 ? "" : "s") + ". Open your streak");
     var ct = currentTier(); $("#lvlchip").textContent = "Level " + (TIERS.indexOf(ct) + 1) + " of 4 · " + ct;
   }
+
+  /* ---------- profile card + streak screen (everyone) ----------
+   * The athlete here is the brand athlete (Option A, /assets/img/athlete.webp), named "Your athlete". The character picker
+   * (feature/character-picker, behind ?picker=1) layers on top by overriding athName() and athImg() only. */
+  var DEF_NAME = "Your athlete";
+  function athName() { return DEF_NAME; }                 // picker: the chosen name (default "Your athlete")
+  function athImg() { return "/assets/img/athlete.webp"; } // picker: still("avatar-192.png") / still("celebrate.webp")
+  function profileCard() {
+    var s = streak(), c = count();
+    return '<div class="card profile"><img src="' + athImg("avatar") + '" alt="" width="64" height="64"><div class="pc-t"><p class="kick">Your profile</p>' +
+      '<b class="pc-n">' + esc(athName()) + '</b><span class="mute small">🔥 ' + s + "-day streak · " + c + "/30 days</span></div>" +
+      '<button type="button" class="pc-e" data-streak aria-label="Open your streak">Streak</button></div>';
+  }
+  function streakScreen() {
+    var s = streak(), c = count(), n = athName(), o = document.createElement("div"), back = document.activeElement;
+    o.className = "celebrate streakscr"; o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true"); o.setAttribute("aria-labelledby", "stk-h");
+    o.innerHTML = '<button type="button" class="x" aria-label="Close">✕</button>' +
+      '<div class="ath-cel"><img src="' + athImg("celebrate") + '" alt="" width="720" height="720"><span class="fb" aria-hidden="true">🔥</span></div>' +
+      '<h2 class="disp" id="stk-h" tabindex="-1">' + (n && n !== DEF_NAME ? esc(n) + "'s" : "Your") + " streak: " + s + " day" + (s === 1 ? "" : "s") + "</h2>" +
+      "<p>" + (doneToday() ? "You practiced today. Nice." : s ? "Practice today to keep it alive." : "Finish a day to start your streak.") + " " + c + "/30 days done.</p>" +
+      '<div class="minigrid" aria-label="' + c + ' of 30 days done">' + DAYS.map(function (D) { return "<i" + (done[D.d] ? ' class="on"' : "") + "></i>"; }).join("") + "</div>" +
+      '<div class="acts">' + (s ? '<button class="big share" data-share>Share your streak</button><p class="u13">Under 13? Parents, share their streak.</p>' : '<button class="big share" data-c>Go to today</button>') +
+      '<button class="big ghost" data-x>Back</button></div>';
+    document.body.appendChild(o); document.body.style.overflow = "hidden";
+    var sh = $(".shell"); sh.setAttribute("aria-hidden", "true"); sh.inert = true;
+    function close() { o.remove(); document.body.style.overflow = ""; sh.removeAttribute("aria-hidden"); sh.inert = false; document.removeEventListener("keydown", esck); if (back && back.focus) back.focus(); }
+    function esck(e) { if (e.key === "Escape" && !(document.getElementById("sharesheet") && !document.getElementById("sharesheet").hidden)) close(); }
+    document.addEventListener("keydown", esck);
+    o.onclick = function (e) { if (e.target.closest("[data-share]")) return openShare(); if (e.target.closest("[data-c]")) { close(); return show("today"); } if (e.target.closest(".x,[data-x]")) close(); };
+    $("#stk-h", o).focus();
+  }
+  $("#streak").addEventListener("click", streakScreen);
 
   /* ---------- tabs ---------- */
   var tab = "today";
@@ -51,7 +83,7 @@
   function renderToday() {
     var dt = doneToday(), d = today(), D = day(d), s = streak(), c = count();
     var restDay = dt && dt < 30 && !done[30] ? dt : 0;  // finished a day today: show tomorrow first
-    var h = "";
+    var h = profileCard();
     if (restDay) {
       var nx = day(restDay + 1);
       h += '<div class="hero"><img class="art" src="/assets/img/hero.webp" alt=""><span class="daytag">Done for today</span>' +
@@ -75,6 +107,7 @@
     }
     $("#tab-today").innerHTML = h;
     $("#tab-today").querySelectorAll("[data-share]").forEach(function (b) { b.addEventListener("click", openShare); });
+    $("#tab-today").querySelectorAll("[data-streak]").forEach(function (b) { b.addEventListener("click", streakScreen); });
     $("#tab-today").querySelectorAll("[data-open]").forEach(function (b) { b.addEventListener("click", function () { openDay(+b.dataset.open, locked(+b.dataset.open)); }); });
     paintTop();
   }
@@ -387,5 +420,5 @@
   var h0 = (location.hash || "").slice(1);
   show(["map", "founding"].indexOf(h0) >= 0 ? h0 : "today");
   if ("serviceWorker" in navigator && window.isSecureContext) addEventListener("load", function () { navigator.serviceWorker.register("/app-preview/sw.js", { scope: "/app-preview/" }).catch(function () {}); });
-  window.HLAPP_DEBUG = { openDay: openDay, celebrate: celebrate, show: show };
+  window.HLAPP_DEBUG = { openDay: openDay, celebrate: celebrate, show: show, streakScreen: streakScreen };
 })();

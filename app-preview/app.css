@@ -177,3 +177,18 @@ details.kid p{margin:6px 0 0}
 .hasdg .steptext{margin:2px 0 0;line-height:1.2}
 .hasdg .stepname{margin:6px 0 2px}.hasdg .steptext{font-size:21px}.hasdg .cue{padding:6px 12px;margin-top:6px}
 .hasdg .counter{padding:6px 10px}.hasdg .pad{width:90px;height:90px}.hasdg .pad .num{font-size:38px}.hasdg .pad .of{bottom:16px}
+/* profile card + streak screen (same classes as the character-picker branch, so the picker layers on top) */
+button.flame{color:var(--txt);font:inherit;font-weight:800;min-height:36px}
+.profile{display:flex;align-items:center;gap:12px;margin:6px 0 14px}
+.profile img{width:64px;height:64px;border-radius:50%;border:3px solid var(--or);box-shadow:3px 3px 0 #000;flex:none;object-fit:cover}
+.profile .pc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.profile .kick{margin:0}
+.profile .pc-n{font:400 24px/1.05 var(--disp);text-transform:uppercase;overflow-wrap:anywhere}
+.pc-e{min-height:44px;padding:0 16px;border-radius:999px;background:var(--ink3);font:400 15px/1 var(--lab);letter-spacing:.08em;text-transform:uppercase;color:var(--or)}
+.ath-cel{position:relative;width:min(48vw,210px);aspect-ratio:1;animation:flame 1s cubic-bezier(.2,1.6,.4,1) both}
+.ath-cel img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:5px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.35)}
+.ath-cel .fb{position:absolute;right:-6px;bottom:4px;font-size:54px;line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
+.streakscr{z-index:35}
+.streakscr .x{position:absolute;top:calc(12px + var(--safe-t));right:12px;width:44px;height:44px;border-radius:50%;background:var(--ink);color:var(--or);font-size:18px}
+.streakscr h2:focus{outline:none}
+.minigrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:100%;max-width:360px;margin-top:14px}
+.minigrid i{aspect-ratio:1;border-radius:5px;background:rgba(14,14,16,.25)}.minigrid i.on{background:var(--ink)}
