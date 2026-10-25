@@ -12,7 +12,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SITE = "https://handleslab.com"
 E = lambda s: html.escape(str(s), quote=True)
 
-TITLE = {1: "Stance + pound dribble", 2: "Pound ladder: high, middle, low", 3: "V-dribbles, front and side",
+TITLE = {1: "Stance + pound dribble", 2: "Pound ladder: chest, hip, knee", 3: "V-dribbles, front and side",
  4: "Ball wraps + figure-8 wrap", 5: "Stationary crossover + kill dribble", 6: "Stationary in-and-out",
  7: "Between the legs (stationary)", 8: "Behind the back (stationary)", 9: "Figure-8 dribble + ricochet",
  10: "On the move: speed, control, jump stop", 11: "Crossover on the move", 12: "Hesitation / rocker",
